@@ -13,7 +13,7 @@ class Population(object):
 
 
 
-    def __init__(self, net, number=1, hetparameters={},partitionpdf=None,growth=None,division_size=4./3.,size_pdf=None, max_divergence_factor=np.inf):
+    def __init__(self, net, number=1, hetparameters={},partitionpdf=None,growth=None,division_size=1.95,size_pdf=None, max_divergence_factor=np.inf):
         """
         dictionary hetparameters with key: parameter  value: pdf
         population represents list of cells with reaction network net and heterogeneous parameters from hetparameters
@@ -107,11 +107,25 @@ class Population(object):
             [self.s_times[k],event]=self.cells[k].Cell_Simulator(t_end=t_end,time_points=time[i_1:],t0=st,x0=None,stimulus=stimulus,simulator=simulator)
             idx = [tp >= self.s_times[k] for tp in self.time_points].index(True) - 1
             if event==1:   # cell divided
-	         r = self.division(k)
-	         self.n_divisions[idx] += 1
-	         if r >= 0:
-		     self.delete(r)
-		     self.n_removed[idx] +=1
+    	         r = self.division(k)
+    	         self.n_divisions[idx] += 1
+    	         if r >= 0:
+    		     self.delete(r)
+    		     self.n_removed[idx] +=1
+#           if simulator.teststop:   # cell divided
+#                self.cells[k].divide(st)
+#                r = self.division(k)
+#                self.n_divisions[idx] += 1
+#                if r >= 0:
+#                    self.delete(r)
+#                    self.n_removed[idx] +=1
+#           elif event==2 and simulator.teststop: # cell divided
+#               self.cells[k].divide(st)
+#               r = self.division(k)
+#               self.n_divisions[idx] += 1
+#               if r >= 0:
+#                   self.delete(r)
+#                   self.n_removed[idx] +=1
 	    elif event==2:   # cell death
 	        self.delete(k)
 	        self.n_deaths [idx] +=1

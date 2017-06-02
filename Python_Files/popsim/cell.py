@@ -19,7 +19,7 @@ except ImportError:
 
 class Cell(object):
 
-    def __init__(self, net, hetparameters={},growth=None, mother=None, d_size=4./3.,t0=0, partitionpdf=None,x0=None,size=1.,max_divergence_factor=np.inf):
+    def __init__(self, net, hetparameters={},growth=None, mother=None, d_size=1.95,t0=0, partitionpdf=None,x0=None,size=1.,max_divergence_factor=np.inf):
 
         """
         net - biochemical reaction network
@@ -216,7 +216,7 @@ class Cell(object):
 
         """
         if self.g != 0:
-	    self.net.set({'g':self.g})
+            self.net.set({'g':self.g})
             next_division = t0 + (self.d_size-self.size)/self.g   # linear cell growth      #  exponential cell growth:   t0 + np.log(self.d_size/self.size)/self.g
             t_end = min(next_division, t_end)
         self.net.set(self.hetvals)
@@ -265,16 +265,22 @@ class Cell(object):
 	    #self.simulated_time = t0
 	    #self.state = x0
 	    #self.size = self.state[self.net.species.index('V')]/100 if 'V' in self.net.species else self.size   # reference-size: 100
-	    event = 2
-	elif (next_division == t_end)&(self.removed==False):
+            self.divide(self.simulated_time)
+            event=1
+            self.size = 0.5*self.d_size
+	    #event = 2
+
+	elif (simulator.teststop == True):# & (self.removed == False):#(next_division == t_end)&(self.removed==False):
             self.divide(next_division)
             event=1
             self.size = 0.5*self.d_size
 
-
         else:
             event = 0
             self.size = self.state[self.net.species.index('V')] if 'V' in self.net.species else self.size
+        
+        return [float(self.simulated_time),event]
+
         """
 	self.size*=np.exp(self.g*(t[-1]-self.simulated_time))
         if eval(self.net.death_condition):
@@ -286,8 +292,6 @@ class Cell(object):
 	    event=0
 	    self.size*=math.exp(self.g*(self.simulated_time-t0))
 	"""
-
-        return [float(self.simulated_time),event]
 
 
 
