@@ -6,14 +6,14 @@ import cell
 import numpy as np
 import copy
 
-
+import random
 
 class Population(object):
 
 
 
 
-    def __init__(self, net, number=1, hetparameters={},partitionpdf=None,growth=None,division_size=1.95,size_pdf=None, max_divergence_factor=np.inf):
+    def __init__(self, net, number=1, hetparameters={},partitionpdf=None,growth=None,division_size=1.95,size_pdf=None,max_divergence_factor=np.inf):
         """
         dictionary hetparameters with key: parameter  value: pdf
         population represents list of cells with reaction network net and heterogeneous parameters from hetparameters
@@ -29,10 +29,21 @@ class Population(object):
         self.cells=[]
         self.mother_cells=[]
         self.max_divergence_factor = max_divergence_factor
-        sizes=[float(size_pdf.sample()) for i in xrange(number)] if size_pdf !=None else np.ones(number)
+#        self.simulation_type = simulation_type
+#        self.states = trajectories
+#        self.ic_time_points = ic_time_points
+        sizes = size_pdf if size_pdf != None else np.ones(number)        
+        #sizes=[float(size_pdf.sample()) for i in xrange(number)] if size_pdf !=None else np.ones(number)
         for i in xrange(number):
             self.cells.append(cell.Cell(net,hetparameters,growth=growth, mother=None, d_size=division_size,partitionpdf=self.partitionpdf,size=sizes[i],max_divergence_factor=max_divergence_factor))
-            self.cells[-1].state *= sizes[i]     #letzte entstehende Zelle jeweils neue Initialcondition
+            # initial states for loop simulation are last state of recent loop
+#            if simulation_type == 2:
+#                for index in range(len(self.cells[-1].state)-1):
+#                    self.cells[-1].state[index] = self.states[i][index]            
+            # initial states for simulation 2 at points of computed pdf stored in growth
+#            elif not simulation_type:
+#                for index in range(len(self.cells[-1].state)-1):
+#                    self.cells[-1].state[index] = self.states[self.ic_time_points[i]][index] #self.cells[-1].state *= sizes[i]
             self.mother_cells.append(self.cells[i])
 
 
@@ -43,22 +54,27 @@ class Population(object):
         """
         self.cells.append(self.cells[i].daughters[-1])
         self.s_times.append(self.cells[-1].simulated_time)
+    
         self.current_n += 1
-        r=-1
-        if self.current_n > self.maximal_number:
+        r = -1
+        if self.current_n > self.maximal_number: #and self.cells[-1].simulated_time > 24:
             r = int(np.random.random(1)*(self.current_n))
+            #print (i, r, self.s_times[-1])
+            #r = np.random.randint(0, self.current_n)            
             #self.delete(r)
         return r
 
 
 
     def delete(self,i):
-         # cell = self.cells[i]
-         # cell.mother.daughters.pop(cell.mother.daughters.index(cell)) 	# remove from mother cell
-         self.cells[i].removed=True
-         self.cells.pop(i)
-         self.current_n -= 1
-	 self.s_times.pop(i)
+        #cell = self.cells[i]
+        #cell.mother.daughters.pop(cell.mother.daughters.index(cell)) 	# remove from mother cell
+#        if self.cells[i] in self.mother_cells:        
+#            self.mother_cells.pop(self.mother_cells.index(self.cells[i]))        
+        self.cells[i].removed=True
+        self.cells.pop(i)
+        self.current_n -= 1
+        self.s_times.pop(i)
 
 
     def kill(self, i):
@@ -81,8 +97,8 @@ class Population(object):
         """
         time_scale=1
         if method==simulation.VodeSimulator:
-	    time_scale=10
-	self.net.scale=[time_scale*i for i in self.net.scale]
+        time_scale=10
+        self.net.scale=[time_scale*i for i in self.net.scale]
         """
         #
         self.s_times=[0]*self.current_n  #np.zeros(self.number)
@@ -91,9 +107,9 @@ class Population(object):
             self.s_times[i]=float(self.cells[i].simulated_time)
         st=min(self.s_times)
         k=self.s_times.index(st)
-        if initial_states != None:
+        if initial_states != None: # initalize x0 = initial_states!!!
             for i in xrange(self.current_n):
-                self.cells[i].initialize(x_0=initial_states,t_0=t_0)
+                self.cells[i].initialize(x0=initial_states,t0=t_0)
         time = np.linspace(t_0,t_end,n)
         self.time_points.extend(time)
         self.n_divisions = [0]*(n-1)
@@ -107,35 +123,22 @@ class Population(object):
             [self.s_times[k],event]=self.cells[k].Cell_Simulator(t_end=t_end,time_points=time[i_1:],t0=st,x0=None,stimulus=stimulus,simulator=simulator)
             idx = [tp >= self.s_times[k] for tp in self.time_points].index(True) - 1
             if event==1:   # cell divided
-    	         r = self.division(k)
-    	         self.n_divisions[idx] += 1
-    	         if r >= 0:
-    		     self.delete(r)
-    		     self.n_removed[idx] +=1
-#           if simulator.teststop:   # cell divided
-#                self.cells[k].divide(st)
-#                r = self.division(k)
-#                self.n_divisions[idx] += 1
-#                if r >= 0:
-#                    self.delete(r)
-#                    self.n_removed[idx] +=1
-#           elif event==2 and simulator.teststop: # cell divided
-#               self.cells[k].divide(st)
-#               r = self.division(k)
-#               self.n_divisions[idx] += 1
-#               if r >= 0:
-#                   self.delete(r)
-#                   self.n_removed[idx] +=1
-	    elif event==2:   # cell death
-	        self.delete(k)
-	        self.n_deaths [idx] +=1
+                r = self.division(k)
+                self.n_divisions[idx] += 1
+                if r >= 0:
+                    self.delete(r)
+                    self.n_removed[idx] +=1
+                #return float(self.s_times[k])
+            elif event==2:   # cell death
+                self.delete(k)
+                self.n_deaths [idx] +=1
             if self.s_times != []:
                 st=min(self.s_times)   # st - minimal simulated time of all cells, which are simulated
                 k=self.s_times.index(st)
             else:
-	        st = t_end+1  # population died out
+                st = t_end+1  # population died out
 
-	#cells=self.get_cells
+        #cells=self.get_cells
 
 
     def get_cells(self):
@@ -144,8 +147,8 @@ class Population(object):
         """
         cells=[]
         for i in self.mother_cells:
-	    i.get_cells(cells)
-	return cells
+            i.get_cells(cells)
+        return cells
 
 
     def get_numbers(self):
@@ -160,7 +163,9 @@ class Population(object):
         alive += born-dead
         simulated = alive.copy()                       # simulated cells = alive - removed
         simulated[1:len(simulated)] -= np.cumsum(self.n_removed)
-        return alive, dead
+        removed = self.n_removed
+        removed.insert(0, 0)
+        return alive, dead, removed
         #return born, dead, alive, simulated
 
 
@@ -182,29 +187,29 @@ class Population(object):
         i=len(c)-1
         if mode == 'alive':
             while i >= 0:
-	        if not c[i].alive:   # throw away dead cells
-	            c.pop(i)
+                if not c[i].alive:   # throw away dead cells
+                    c.pop(i)
                 i -= 1
-	elif mode == 'not_rem':
+        elif mode == 'not_rem':
             while i >= 0:
-	        if c[i].removed:   # throw away removed cells
-	            c.pop(i)
-	        i -= 1
-	elif mode == 'sim_to_end':
-	    while i >= 0:
-	        if c[i].simulated_time < self.time_points[-1]:   # throw away cells that were not simulated until the end
-	            c.pop(i)
-	        i -= 1
-	elif mode == 'deadcells':
-	    while i >= 0:
-	        if c[i].alive:   # throw away alive cells, not checked!!
-	            c.pop(i)
-	        i -= 1
+                if c[i].removed:   # throw away removed cells
+                    c.pop(i)
+                i -= 1
+        elif mode == 'sim_to_end':
+            while i >= 0:
+                if c[i].simulated_time < self.time_points[-1]:   # throw away cells that were not simulated until the end
+                    c.pop(i)
+                i -= 1
+        elif mode == 'deadcells':
+            while i >= 0:
+                if c[i].alive:   # throw away alive cells, not checked!!
+                    c.pop(i)
+                i -= 1
         vals = [0]*len(c)
         for i in xrange(len(c)):
-	    vals[i] = c[i].state[index]
-	vals.sort()
-	return vals
+            vals[i] = c[i].state[index]
+        vals.sort()
+        return vals
 	
 	
 	
@@ -221,14 +226,14 @@ class Population(object):
         i=len(c)-1
         if mode == 'death':
             while i >= 0:
-	        if not c[i].dead:   # throw away alive cells
-	            c.pop(i)
+                if not c[i].dead:   # throw away alive cells
+                    c.pop(i)
                 i -= 1
         vals = [0]*len(c)
         for i in xrange(len(c)):
-	    vals[i] = c[i].state[index]
-	vals.sort()
-	return vals
+            vals[i] = c[i].state[index]
+        vals.sort()
+        return vals
 	
 	
 
@@ -245,28 +250,28 @@ class Population(object):
         i=len(c)-1
         if mode == 'alive':
             while i >= 0:
-	        if not c[i].alive:   # throw away dead cells
-	            c.pop(i)
+                if not c[i].alive:   # throw away dead cells
+                    c.pop(i)
                 i -= 1
-	elif mode == 'not_rem':
+        elif mode == 'not_rem':
             while i >= 0:
-	        if c[i].removed:   # throw away removed cells
-	            c.pop(i)
-	        i -= 1
-	elif mode == 'sim_to_end':
-	    while i >= 0:
-	        if c[i].simulated_time < self.time_points[-1]:   # throw away cells that were not simulated until the end
-	            c.pop(i)
-	        i -= 1
-	elif mode == 'sim_not_to_end':
-	    while i >= 0:
-	        if not c[i].simulated_time < self.time_points[-1]:   # throw away cells that were not simulated until the end
-	            c.pop(i)
-	        i -= 1
+                if c[i].removed:   # throw away removed cells
+                    c.pop(i)
+                i -= 1
+        elif mode == 'sim_to_end':
+            while i >= 0:
+                if c[i].simulated_time < self.time_points[-1]:   # throw away cells that were not simulated until the end
+                    c.pop(i)
+                i -= 1
+        elif mode == 'sim_not_to_end':
+            while i >= 0:
+                if not c[i].simulated_time < self.time_points[-1]:   # throw away cells that were not simulated until the end
+                    c.pop(i)
+                i -= 1
         vals = [0]*len(c)
         for i in xrange(len(c)):
-	    vals[i] = c[i].state[index]
-	return vals
+            vals[i] = c[i].state[index]
+        return vals
 
 
     def get_parameter_distribution(self, parameter, mode='sim_to_end'):
@@ -282,24 +287,24 @@ class Population(object):
         i=len(c)-1
         if mode == 'alive':
             while i >= 0:
-	        if not c[i].alive:   # throw away dead cells
-	            c.pop(i)
+                if not c[i].alive:   # throw away dead cells
+                    c.pop(i)
                 i -= 1
-	elif mode == 'not_rem':
+        elif mode == 'not_rem':
             while i >= 0:
-	        if c[i].removed:   # throw away removed cells
-	            c.pop(i)
-	        i -= 1
-	elif mode == 'sim_to_end':
-	    while i >= 0:
-	        if c[i].simulated_time < self.time_points[-1]:   # throw away cells that were not simulated until the end
-	            c.pop(i)
-	        i -= 1
+                if c[i].removed:   # throw away removed cells
+                    c.pop(i)
+                i -= 1
+        elif mode == 'sim_to_end':
+            while i >= 0:
+                if c[i].simulated_time < self.time_points[-1]:   # throw away cells that were not simulated until the end
+                    c.pop(i)
+                i -= 1
         vals = [0]*len(c)
         for i in xrange(len(c)):
-	    vals[i] = c[i].hetvals[parameter]
-	vals.sort()
-	return vals
+            vals[i] = c[i].hetvals[parameter]
+        vals.sort()
+        return vals
 	
 	
     def get_unsorted_parameter_distribution(self, parameter, mode='sim_t_end'):
@@ -313,8 +318,8 @@ class Population(object):
         i=len(c)-1
         vals = [0]*len(c)
         for i in xrange(len(c)):
-	    vals[i] = c[i].hetvals[parameter]
-	return vals
+            vals[i] = c[i].hetvals[parameter]
+        return vals
 	
 	
 

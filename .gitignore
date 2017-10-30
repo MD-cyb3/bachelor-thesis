@@ -4,5 +4,4 @@
 *.goutputstream-T3M07W
 brn/
 **/popsim/Cell_Stimulus.py
-**/popsim/pdf.py
 **/popsim/propfun.py

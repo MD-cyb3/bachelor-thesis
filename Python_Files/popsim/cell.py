@@ -64,7 +64,7 @@ class Cell(object):
                 if abs(self.max_divergence_factor - 1) < 0.001:
                     self.hetvals[j] = mother.hetvals[j]
                 else:
-		    oldval = mother.hetvals[j]
+                    oldval = mother.hetvals[j]
                     self.hetvals[j] = self.hetparameters[j].sample()[0]
                     while (self.hetvals[j] < oldval/self.max_divergence_factor) or (self.hetvals[j] > oldval*self.max_divergence_factor):
                         self.hetvals[j]= self.hetparameters[j].sample()[0]
@@ -72,7 +72,10 @@ class Cell(object):
             self.hetvals = dict.fromkeys(hetparameters.keys())
             for j in hetparameters.keys():
                 self.hetvals[j]= self.hetparameters[j].sample()[0]
-
+                
+        # set hetvals as states of brn
+        for j in self.hetparameters.keys():
+            self.state[self.net.species.index(j)] = self.hetvals[j]
 
         if 'V' in self.net.species:
             self.net.set({'V':size})
@@ -87,11 +90,12 @@ class Cell(object):
         """
         self.division_times.append(t)
         if self.partitionpdf == None:
-	    factor = 0.5
-	else:
+            factor = 0.5
+        else:
             factor = self.partitionpdf.sample()
             factor=max(factor,1-factor)
-        daughter_x= np.asarray([(1-factor)*i for i in self.state])
+        # IC für Tochterzelle ist 1:1 Zustand der Mutterzelle
+        daughter_x= np.asarray([(1-0)*i for i in self.state])
         #daughter_x= np.asarray([int((1-factor)*i) for i in self.state])
         new_daughter = Cell(self.net, self.hetparameters,self.growth, self, self.d_size,t0=t,partitionpdf=self.partitionpdf,x0=daughter_x,size=self.d_size*(1-factor),max_divergence_factor=self.max_divergence_factor)
         #new_daughter.hetvals = self.hetvals  # daughter has same hetvals as mother
@@ -108,8 +112,13 @@ class Cell(object):
                 self.hetvals[j] = self.hetparameters[j].sample()[0]
                 while (self.hetvals[j] < oldval/self.max_divergence_factor) or (self.hetvals[j] > oldval*self.max_divergence_factor):
                     self.hetvals[j]= self.hetparameters[j].sample()[0]
-        for i in xrange(len(self.state)):
-            self.state[i] -= daughter_x[i]
+                    
+        # set hetvals as states of brn
+        for j in self.hetparameters.keys():
+            self.state[self.net.species.index(j)] = self.hetvals[j]
+
+#        for i in xrange(len(self.state)):
+#            self.state[i] -= daughter_x[i]
 
 
 
@@ -138,10 +147,10 @@ class Cell(object):
         times.sort()
         i=0
         while i<(len(times)-1):    # remove multiple entries of times
-	    if times[i+1]==times[i]:
-	        times.pop(i+1)
-	    else:
-	        i=i+1
+            if times[i+1]==times[i]:
+                times.pop(i+1)
+            else:
+                i=i+1
         t,res=self.net.simulate(times,method=method,x0=x0)
         return t,res
 
@@ -155,10 +164,10 @@ class Cell(object):
         times.sort()
         i=0
         while i<(len(times)-1):    # remove multiple entries of times
-	    if times[i+1]==times[i]:
-	        times.pop(i+1)
-	    else:
-	        i=i+1
+            if times[i+1]==times[i]:
+                times.pop(i+1)
+            else:
+                i=i+1
         t,res=self.net.simulate(times,method=method,x0=x0, stopcondition=stopcondition)
         return t,res
 
@@ -166,14 +175,14 @@ class Cell(object):
         # appends those elements of t and res which are specified in time_points to self.time_points and self.trajectory
         indices=[]
         for i in xrange(len(t)):   # find indices of t which are element of time_points
-	    for s in time_points:
-	        if t[i]==s:
-		    indices.extend([i])
+            for s in time_points:
+                if t[i]==s:
+                    indices.extend([i])
 
-	tt = [t[i] for i in indices]    # save values only if desired
-	rres = [res[i] for i in indices]
-	self.time_points.extend(tt)
-	self.trajectory.extend(rres)
+        tt = [t[i] for i in indices]    # save values only if desired
+        rres = [res[i] for i in indices]
+        self.time_points.extend(tt)
+        self.trajectory.extend(rres)
 
 
     def simulate_interval(self, t0, t_end, time_points, x0, simulator):
@@ -184,7 +193,7 @@ class Cell(object):
             j2 = (time_points>t_end).argmax() if time_points[-1]>t_end else len(time_points)# last index in interval
             t_points = time_points[j1:j2]
         else:
-	    t_points = []
+            t_points = []
 
         step = 0.1
         nstep = int((t_end-t0)/step)
@@ -194,10 +203,10 @@ class Cell(object):
         times.sort()
         i=0
         while i<(len(times)-1):    # remove multiple entries of times
-	    if times[i+1]==times[i]:
-	        times.pop(i+1)
-	    else:
-	        i=i+1
+            if times[i+1]==times[i]:
+                times.pop(i+1)
+            else:
+                i=i+1
         simulator.initialize(x0=x0, p=self.net.eval(self.net.parameters))
         t,res=simulator.run(times)
         self.save_trajectory(time_points, t, res)
@@ -234,46 +243,49 @@ class Cell(object):
         #j1=(time_points>t0).argmax()
         #j2=min((time_points>=next_division).argmax(),len(time_points)-1) # -1?
         if stimulus != {}:
-	    s = stimulus.keys()[0]
-	    stim = stimulus[s]
-	    maxind=len(stim[0])   # last index of stimulus
-	    ind = (stim[0]>t0).argmax()-1 if stim[0][-1] > t0 else maxind-1 # last index <= t0
-	    self.net.set({s:stim[1][ind]})
+            s = stimulus.keys()[0]
+            stim = stimulus[s]
+            maxind=len(stim[0])   # last index of stimulus
+            ind = (stim[0]>t0).argmax()-1 if stim[0][-1] > t0 else maxind-1 # last index <= t0
+            self.net.set({s:stim[1][ind]})
             if s in self.net.species:
                 x0[self.net.species.index(s)] = stim[1][ind]
-	    ind +=1    # next index of stimulus change
-	    while 1: #(ind<maxind) & (stim[0][ind]<t_end) :    # terminates if  last index of stimulus is reached or time_point of stimulus change is >= t_end
-	        ###     Watch out, not tested!!!
-	        if ind == maxind:
-		    break
-		elif (stim[0][ind]>=t_end):
-		    break
-	        t0, x0 = self.simulate_interval(t0, stim[0][ind], time_points, x0, simulator)   # simulated until next stimulus change
-	        self.net.set({s:stim[1][ind]})
+            ind +=1    # next index of stimulus change
+            while 1: #(ind<maxind) & (stim[0][ind]<t_end) :    # terminates if  last index of stimulus is reached or time_point of stimulus change is >= t_end
+                ###     Watch out, not tested!!!
+                if ind == maxind:
+                    break
+                elif (stim[0][ind]>=t_end):
+                    break
+                t0, x0 = self.simulate_interval(t0, stim[0][ind], time_points, x0, simulator)   # simulated until next stimulus change
+                self.net.set({s:stim[1][ind]})
                 if s in self.net.species:
                     x0[self.net.species.index(s)] = stim[1][ind]
-	        if t0 < stim[0][ind]:  # simulation stopped due to stopcondition
-		    self.simulated_time = t0
-		    self.state = x0
-		    #self.size = self.state[self.net.species.index('V')]/100 if 'V' in self.net.species else self.size   # reference-size: 100
-		    event = 2
-		    return [float(self.simulated_time),event]
-		ind +=1
+                if t0 < stim[0][ind]:  # simulation stopped due to stopcondition
+                    self.simulated_time = t0
+                    self.state = x0
+                    #self.size = self.state[self.net.species.index('V')]/100 if 'V' in self.net.species else self.size   # reference-size: 100
+                    #event = 2
+                    self.divide(self.simulated_time)
+                    event = 1
+                    self.size = 0.5*self.d_size
+                    return [float(self.simulated_time),event]
+                ind +=1
 
         self.simulated_time, self.state = self.simulate_interval(t0, t_end, time_points, x0, simulator)    # if there is no stimulus an simulate the rest after while-loop terminated
         if self.simulated_time < t_end:  # simulation stopped due to stopcondition
-	    #self.simulated_time = t0
-	    #self.state = x0
-	    #self.size = self.state[self.net.species.index('V')]/100 if 'V' in self.net.species else self.size   # reference-size: 100
+            #self.simulated_time = t0
+            #self.state = x0
+            #self.size = self.state[self.net.species.index('V')]/100 if 'V' in self.net.species else self.size   # reference-size: 100
+            #event = 2      
             self.divide(self.simulated_time)
             event=1
-            self.size = 0.5*self.d_size
-	    #event = 2
+            #self.size = 0.5*self.d_size
 
-	elif (simulator.teststop == True):# & (self.removed == False):#(next_division == t_end)&(self.removed==False):
-            self.divide(next_division)
-            event=1
-            self.size = 0.5*self.d_size
+#        elif (simulator.teststop == True):# & (self.removed == False):#(next_division == t_end)&(self.removed==False):
+#            self.divide(next_division)
+#            event=1
+#            self.size = 0.5*self.d_size
 
         else:
             event = 0
@@ -282,15 +294,15 @@ class Cell(object):
         return [float(self.simulated_time),event]
 
         """
-	self.size*=np.exp(self.g*(t[-1]-self.simulated_time))
+        self.size*=np.exp(self.g*(t[-1]-self.simulated_time))
         if eval(self.net.death_condition):
-	    event=2
+            event=2
         elif (next_division<t_end)&(self.removed==False):
             self.divide(next_division)
             event=1
         else:
-	    event=0
-	    self.size*=math.exp(self.g*(self.simulated_time-t0))
+            event=0
+        self.size*=math.exp(self.g*(self.simulated_time-t0))
 	"""
 
 
@@ -479,14 +491,14 @@ class Cell(object):
         error if time_points=[]!!
         """
         if t<= max(self.time_points):
-	    i=[j>=t for j in self.time_points].index(1)
-	return self.trajectory[i]
+            i=[j>=t for j in self.time_points].index(1)
+        return self.trajectory[i]
 
 
     def get_cells(self, cell_list=[]):
         cell_list.append(self)
         for i in self.daughters:
-	    i.get_cells(cell_list)
+            i.get_cells(cell_list)
 
 
 

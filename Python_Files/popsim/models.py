@@ -13,9 +13,10 @@ def CellCycle_MD():
     """
     5-variable skeleton model for mammalian cell cycle
     """
-    stoich = np.zeros((7,13))
+    stoich = np.zeros((7,14))
     stoich[0,0] = 1
     stoich[0,4] = -1
+    stoich[0,13] = 1
     stoich[1,1] = 1
     stoich[1,5] = -1
     stoich[2,2] = 1
@@ -30,26 +31,33 @@ def CellCycle_MD():
     
     species = ['Ma', 'Mb', 'Md', 'Me', 'E2F', 'Cdc20', 'V']
     variables = []
-    reactions = ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11', 'v12']
-    parameters = ['vsa', 'vsb', 'vsd', 'vse', 'Vda', 'Vdb', 'Vdd', 'Vde', 'V1e2f', 
-                  'V2e2f', 'V1cdc20','V2cdc20', 'Kda', 'Kdb', 'Kdd', 'Kde', 'K1e2f', 
-                  'K2e2f', 'K1cdc20', 'K2cdc20', 'Kgf', 'E2Ftot', 'Cdc20tot', 'GF', 'g',
-                  'Stimulus', 'Vref', 'alpha']
+    reactions = ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 
+                 'v10', 'v11', 'v12', 'v13']
+    parameters = ['vsa', 'vsb', 'vsd', 'vse', 'Vda', 'Vdb', 'Vdd', 'Vde', 
+                  'V1e2f', 'V2e2f', 'V1cdc20','V2cdc20', 'Kda', 'Kdb', 'Kdd', 
+                  'Kde', 'K1e2f', 'K2e2f', 'K1cdc20', 'K2cdc20', 'Kgf', 
+                  'E2Ftot', 'Cdc20tot', 'GF', 'g', 'Stimulus', 'Vref', 'alpha', 
+                  'vu', 'nu', 'ku', 'input']
     net = brn.Brn(stoich,species,reactions,parameters,variables)
     net.set({'v0':'vsa * E2F', 'v1':'vsb * Ma', 'v2':'vsd * (GF / (Kgf + GF))',
              'v3':'vse * E2F', 'v4':'Vda * Cdc20 * (Ma / (Kda + Ma))',
              'v5':'Vdb * Cdc20 * (Mb / (Kdb + Mb))', 
-             'v6':'Vdd * (Md / (Kdd + Md))', 'v7':'Vde * Ma * (Me / (Kde + Me))',
-             'v8':'V1e2f * ((E2Ftot - E2F) / (K1e2f + E2Ftot - E2F)) * (Md + Me)',
-             'v9':'V1cdc20 * Mb * ((Cdc20tot - Cdc20) / (K1cdc20 + Cdc20tot - Cdc20))',
+             'v6':'Vdd * (Md / (Kdd + Md))', 
+             'v7':'Vde * Ma * (Me / (Kde + Me))',
+             'v8':'V1e2f * ((E2Ftot - E2F) / \
+                            (K1e2f + E2Ftot - E2F)) * (Md + Me)',
+             'v9':'V1cdc20 * Mb * ((Cdc20tot - Cdc20) / \
+                                   (K1cdc20 + Cdc20tot - Cdc20))',
              'v10':'V2e2f * (E2F / (K2e2f + E2F)) * Ma', 
              'v11':'V2cdc20 * (Cdc20 / (K2cdc20 + Cdc20))',
-             'v12':'alpha * (Vref - V)'})
-    net.set({'vsa':0.175, 'vsb':0.21, 'vsd':0.175, 'vse':0.21, 'Vda':0.245, 'Vdb':0.28,
-             'Vdd':0.245, 'Vde':0.35, 'V1e2f':0.805, 'V2e2f':0.7, 'V1cdc20':0.21, 
-             'V2cdc20':0.35, 'Kda':0.1, 'Kdb':0.005, 'Kdd':0.1, 'Kde':0.1, 'K1e2f':0.01, 
-             'K2e2f':0.01, 'K1cdc20':1., 'K2cdc20':1., 'Kgf':0.1, 'E2Ftot':3., 
-             'Cdc20tot':5., 'GF':1., 'g':1., 'V':1., 'Vref':2., 'alpha':0.25})
+             'v12':'alpha * (Vref - V)', 
+             'v13': '(vu * (1 - Ma**(nu) / (ku**(nu) + Ma**(nu)))) * input'})
+    net.set({'vsa':0.175, 'vsb':0.21, 'vsd':0.175, 'vse':0.21, 'Vda':0.245, 
+             'Vdb':0.28, 'Vdd':0.245, 'Vde':0.35, 'V1e2f':0.805, 'V2e2f':0.7, 
+             'V1cdc20':0.21, 'V2cdc20':0.35, 'Kda':0.1, 'Kdb':0.005, 'Kdd':0.1, 
+             'Kde':0.1, 'K1e2f':0.01, 'K2e2f':0.01, 'K1cdc20':1., 'K2cdc20':1., 
+             'Kgf':0.1, 'E2Ftot':3., 'Cdc20tot':5., 'GF':1., 'g':1., 'V':1., 
+             'Vref':2., 'alpha':0.25, 'vu':1.6, 'nu':8., 'ku':4., 'input': 0.})
     return net
 
 
