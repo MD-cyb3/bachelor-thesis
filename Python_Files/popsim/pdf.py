@@ -234,6 +234,7 @@ def estimate(scalardata, method="naive", varax=None, h=None, points=200):
     - naive: naive density estimator
     - hist: histogram estimator
     - kde: kernel density estimator from scipy.stats.gaussian_kde
+    - vonMises: kernel density estimator with von Mises kernel for circular distributions
 
     varax is a 1d-array to define the variable axis, if it is None,
       use numpy.linspace(min(scalardata)-h/2, max(scalardata)+h/2, num=200)
@@ -256,6 +257,8 @@ def estimate(scalardata, method="naive", varax=None, h=None, points=200):
     elif method == "kde":
         kde = stats.gaussian_kde(scalardata)
         return ScalarPDF(varax, kde(varax))
+    elif method == "vonMises":
+        # Hier kommmt die kde für von Mises distibutions rein 
 
 def naive_estimator(scalardata, varax=None, h=None):
     """
