@@ -44,7 +44,7 @@ def mapping(z, limit_cycle):
 set simulation parameters #3
 third simulation with division of cells at stopcondition
 '''
-number = 3000 # number of mother cells at t=0
+number = 100#3000 # number of mother cells at t=0
 t_0 = 0.
 t_end = 1 # in hours
 n = 2 # simulation steps
@@ -137,7 +137,7 @@ input_values = []
 net = models.CellCycle_MD()
 
 # number of simulation loops
-maximum = 300
+maximum = 2
 
 ''' 
 simulate cells #3
@@ -301,15 +301,19 @@ for loop in range(1, maximum):
         plt.ylim(-1, 1)
         plt.grid(True)  
         
-    # kernel density estimation
     varax = np.linspace(0., 2*np.pi, num=100)
+    # kernel density estimation
     theta_pdf = pdf.estimate(theta, method="kde", varax=varax, 
                              h=0.05, points=100)
+                             
+    # von Mises estimation
+    theta_pdf_mises = pdf.estimate(theta, method="vonMises", varax=varax,
+                                   points=100, value_kappa=0.5, value_mu=0.)                        
                              
     # plot estimated distribution graph                         
     if (loop == 1) or (loop == maximum-1):
         plt.figure(figsize=(8,7))
-        plt.plot(theta_pdf.varax, theta_pdf.pdf)
+        plt.plot(theta_pdf_mises.varax, theta_pdf_mises.pdf)
         plt.xlabel('phase of cells', fontdict=font)
         plt.ylabel('density on unit circle', fontdict=font)
         plt.xlim(0, 2*np.pi)

@@ -8,9 +8,11 @@ pdf.py: module for working with probability density functions
 import scipy as sp
 import numpy as np
 
-
 from scipy import stats
+
+from operator import add
 from math import exp
+from math import cos
 
 class ScalarPDF(object):
     """
@@ -225,8 +227,24 @@ def log2norm(pdf):
     ax = 10**pdf.varax
     pdftab = pdf.pdf/ax/np.log(10)
     return ScalarPDF(ax, pdftab)
+    
+"""
+function to calculate the factorial of a list
+"""
+def fact_wrapper(n):
+    lst = [1]
+    def fact(n):
+        if n == 0 or n==1:
+            return 1
+        else:
+            a = n * fact(n-1)
+            lst.append(a)
+            return a
 
-def estimate(scalardata, method="naive", varax=None, h=None, points=200):
+    fact(n)
+    return lst
+
+def estimate(scalardata, method="naive", varax=None, h=None, points=200, value_kappa=0, value_mu=0):
     """
     estimate a ScalarPDF from 1d-array scalardata using a density estimator.
 
@@ -258,7 +276,16 @@ def estimate(scalardata, method="naive", varax=None, h=None, points=200):
         kde = stats.gaussian_kde(scalardata)
         return ScalarPDF(varax, kde(varax))
     elif method == "vonMises":
-        # Hier kommmt die kde für von Mises distibutions rein 
+        kappa = value_kappa
+        mu = value_mu
+        bessel = np.linspace(0, points, points)
+        first_term = np.power((1./4. * np.power(kappa, 2)), bessel)
+        second_term = np.power(fact_wrapper(bessel[-1]), 2)
+        B0 = reduce(add, np.divide(first_term, second_term))
+        mises = [0] * points
+        for i in range(points):
+            mises[i] = exp(kappa * cos(scalardata[i] - mu)) / (2 * np.pi * B0)
+        return ScalarPDF(varax, mises)
 
 def naive_estimator(scalardata, varax=None, h=None):
     """
