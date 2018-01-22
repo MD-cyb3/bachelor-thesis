@@ -244,7 +244,7 @@ def fact_wrapper(n):
     fact(n)
     return lst
 
-def estimate(scalardata, method="naive", varax=None, h=None, points=200, value_kappa=0, value_mu=0):
+def estimate(scalardata, method="naive", varax=None, h=None, points=200):
     """
     estimate a ScalarPDF from 1d-array scalardata using a density estimator.
 
@@ -276,15 +276,13 @@ def estimate(scalardata, method="naive", varax=None, h=None, points=200, value_k
         kde = stats.gaussian_kde(scalardata)
         return ScalarPDF(varax, kde(varax))
     elif method == "vonMises":
-        kappa = value_kappa
-        mu = value_mu
-        bessel = np.linspace(0, points, points)
-        first_term = np.power((1./4. * np.power(kappa, 2)), bessel)
-        second_term = np.power(fact_wrapper(bessel[-1]), 2)
-        B0 = reduce(add, np.divide(first_term, second_term))
-        mises = [0] * points
-        for i in range(points):
-            mises[i] = exp(kappa * cos(scalardata[i] - mu)) / (2 * np.pi * B0)
+        kappa = h
+        B0 = sp.special.i0(kappa)
+        denom = 2*np.pi*B0
+        mises = np.zeros(len(varax))
+        for mu in scalardata:
+            mises = mises + np.exp(kappa * np.cos(mu - varax)) / denom
+        mises = mises / len(scalardata)
         return ScalarPDF(varax, mises)
 
 def naive_estimator(scalardata, varax=None, h=None):
