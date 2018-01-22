@@ -19,6 +19,8 @@ from popsim import models
 import matplotlib.pyplot as plt
 from math import log
 
+from save_values import save_values_to_file
+
 '''
 compute point psi on limit cycle with minimum distance to point z 
 in neighbourhood of limit cycle (mapping 1) and corresponding phase on unit
@@ -44,7 +46,7 @@ def mapping(z, limit_cycle):
 set simulation parameters #3
 third simulation with division of cells at stopcondition
 '''
-number = 100#3000 # number of mother cells at t=0
+number = 3000 # number of mother cells at t=0
 t_0 = 0.
 t_end = 1 # in hours
 n = 2 # simulation steps
@@ -128,7 +130,8 @@ het_params__2 = {'Ma': pdf_Ma, 'Mb': pdf_Mb, 'Me': pdf_Me, 'E2F': pdf_E2F,
                  'Cdc20': pdf_Cdc20}
 
 # store moments of cell population
-moments = []
+moments = [] # absolute values
+m1_values = [] # normal values
 
 # store calculated input
 input_values = []
@@ -308,7 +311,7 @@ for loop in range(1, maximum):
                              
     # von Mises estimation
     theta_pdf_mises = pdf.estimate(theta, method="vonMises", varax=varax, h=30,
-                                   points=100)                        
+                                   points=100)      
                              
     # plot estimated distribution graph                         
     if (loop == 1) or (loop == maximum-1):
@@ -360,6 +363,7 @@ for loop in range(1, maximum):
     m_1 = np.trapz(y, x=np.array(x))
     m_minus1 = np.conj(m_1)
     
+    m1_values.append(m_1)
     moments.append(abs(m_1))
 
     '''
@@ -394,6 +398,13 @@ for loop in range(1, maximum):
             plt.plot(Ma[i], Mb[i], marker = 'o', linestyle = 'None')
         plt.xlabel('cyclin A-CDK2', fontdict=font)
         plt.ylabel('cyclin B-CDK1', fontdict=font)
+
+'''
+save all values for parameter study
+'''
+file_name = 'File_Epsilon_%.3f_DivFac_%.3f_SimTime_%d' % (epsilon, max_div_fac__2, maximum-1)
+save_values_to_file(file_name, x, input_values, m1_values, moments, 
+                    theta, theta_pdf_mises.pdf, transformed_theta_pdf)
 
 '''
 Create plots
