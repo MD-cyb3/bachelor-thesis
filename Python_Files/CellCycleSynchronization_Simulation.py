@@ -307,8 +307,8 @@ for loop in range(1, maximum):
                              h=0.05, points=100)
                              
     # von Mises estimation
-    theta_pdf_mises = pdf.estimate(theta, method="vonMises", varax=varax,
-                                   points=100, value_kappa=0.5, value_mu=0.)                        
+    theta_pdf_mises = pdf.estimate(theta, method="vonMises", varax=varax, h=30,
+                                   points=100)                        
                              
     # plot estimated distribution graph                         
     if (loop == 1) or (loop == maximum-1):
