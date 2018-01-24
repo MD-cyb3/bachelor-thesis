@@ -19,7 +19,9 @@ from popsim import models
 import matplotlib.pyplot as plt
 from math import log
 
-from save_values import save_values_to_file
+import os
+
+import save_values
 
 '''
 compute point psi on limit cycle with minimum distance to point z 
@@ -46,6 +48,9 @@ def mapping(z, limit_cycle):
 set simulation parameters #3
 third simulation with division of cells at stopcondition
 '''
+# turn interactive mode off
+plt.ioff()
+
 number = 3000 # number of mother cells at t=0
 t_0 = 0.
 t_end = 1 # in hours
@@ -90,7 +95,7 @@ plt.ylim(0, 0.24)
 initialize cells in normal distribution
 '''
 # create inital pdf
-initial_n_pdf = pdf.normal(np.pi, 0.9, numpoints=100, 
+initial_n_pdf = pdf.normal(np.pi, 1.5, numpoints=100, 
                            varax=np.linspace(0., 2*np.pi, num=100))
 # sample time points for initialzation of cell states 
 # from normal distribution
@@ -107,7 +112,7 @@ for i in n_time_points:
 '''  
 # plot normal age cell distribution
 plt.figure()
-plt.plot(initial_pdf__2.varax, initial_pdf__2.pdf)
+plt.plot(initial_n_pdf.varax, initial_n_pdf.pdf)
 plt.xlabel('cell age on unit circle', fontdict=font)
 plt.ylabel('normal distribution', fontdict=font)
 plt.xlim(0, T)
@@ -142,297 +147,373 @@ net = models.CellCycle_MD()
 # number of simulation loops
 maximum = 200
 
-''' 
-simulate cells #3
-set stopcondition with species V and Mb coupled
-stopcondition = lambda x: x[V_index] >= 1.95 and x[Mb_index] <= Mb_threshold 
-'''
-# start simulation loop
-for loop in range(1, maximum):
-    # output for user
-    print str(loop) + "\n"
-    
-    '''
-    initialization of all required variables
-    '''
-    # all 6 states (+ volume), just the values of one simulation loop
-    Ma = []
-    Mb = []
-    Md = []
-    Me = []
-    E2F = []
-    Cdc20 = []
-    Volume = []
-    
-    '''
-    set growth, Volume sizes and initial states of simulation #3
-    '''
-    # simulation method: simulator with stopcondition
-    method__2 = brn.simulation.VodeSimulatorStop
-    
-    # pdf for growth of cells
-    growth_pdf__2 = None
-    
-    # set inital states of species
-    initial_states__2 = None
-    
-    # initial volume
-    size_pdf__2 = None
-    
-    # no stimulus required
-    stimulus__2 = {}
-    
-    # maximal number of cells is same number as initial cells
-    maximal_number__2 = number
+# kappa for von Mises distribution
+kappa = 70
 
-    # trajectorie of limit cycle for intialization
-    trajectories = limit_trajectories
+# values for simulation study
+div_fac_values = [1.005, 1.1, 2., 10., 100.]
+epsilon_values = [0.01, 0.03, 0.1, 0.5, 1.0]
+
+for max_div_fac in div_fac_values:
+    print "Div_Fac = " + str(max_div_fac) + "\n"
     
-    '''
-    inheritance at cell division
-    '''
-    # (factor = 1 --> mother and daughter identical)
-    # (factor = np.inf --> heterogeneous parameters are sampled from complete 
-    # distrubtion), factor is here chosen as small as possible to ensure 
-    # correct distribution of cells on cell cycle
-    max_div_fac__2 = 3
-    
-    # set input
-    if loop == 1:
-        net.set({'input': 0.})
-    else:
-        net.set({'input': input})
+    for epsilon in epsilon_values:
+        print "Epsilon = " + str(epsilon) + "\n"
         
-    # initialize cell population
-    pop = population.Population(net, number, hetparameters = het_params__2,
-                                growth = growth_pdf__2, size_pdf = size_pdf__2, 
-                                max_divergence_factor=max_div_fac__2)
-    
-    '''
-    set initial states of population and initial volume
-    '''
-    # first simulation loop
-    if loop == 1:
-        # initialize volume
-        Volume_initialization = []
-        for i in range(number):
-            Volume_initialization.append(V_trajectory[n_time[i]])
+        '''
+        set folder and file names to save values
+        '''
+        folder_name = 'Epsilon_%.3f_DivFac_%.3f' % (epsilon, max_div_fac)
+                  
+        file_name_1 = 'Time_Dependent_Values'
+        file_name_2 = 'Distribution_Values'
+        file_name_3 = 'Phase_Dependent_Values'
+        file_name_4 = 'Information about this folder'
+        
+        information_text = 'SimTime_%d, Kappa_%d, NumberOfCells%d' % (maximum-1, kappa, maximal_number__2)
+        information_text += os.linesep
+        information_text += 'Time_Dependent_Values with input u(t), moments m1(t), and absolut of moments |m1(t)|'
+        information_text += os.linesep
+        information_text += 'Distribution_Values with distribution n(x,0), n(x,t_end), p(x,0), p(x,t_end)'
+        information_text += os.linesep
+        information_text += 'Phase_Dependent_Values with phase theta(0), theta(t_end)'
+        
+        name_of_path = 'csv_files_simulation_SECONDstudy/' + folder_name + '/'
+        name_of_path_plot_folder = name_of_path + 'Plots/'
+        
+        # create directory for plots
+        directory_plots = os.path.dirname(name_of_path_plot_folder)
+        if not os.path.exists(directory_plots):
+            os.makedirs(directory_plots) 
+        
+        ''' 
+        simulate cells #3
+        set stopcondition with species V and Mb coupled
+        stopcondition = lambda x: x[V_index] >= 1.95 and x[Mb_index] <= Mb_threshold 
+        '''
+        # start simulation loop
+        for loop in range(1, maximum):
+            # output for user
+            print "Loop = " + str(loop) + "\n"     
+        
+            '''
+            initialization of all required variables
+            '''
+            # all 6 states (+ volume), just the values of one simulation loop
+            Ma = []
+            Mb = []
+            Md = []
+            Me = []
+            E2F = []
+            Cdc20 = []
+            Volume = []
             
-        for i in pop.mother_cells:
-            # initialize volume (size) and all 6 state-variables
-            i.size = Volume_initialization[pop.mother_cells.index(i)]
-            for index in range(len(i.state)-1):
-                i.state[index] = \
-                        trajectories[n_time[pop.mother_cells.index(i)]][index]
-
-    # other simulation loops
-    else:
-        for i in pop.cells:
-            # initialize volume
-            i.size = Volume_end[pop.cells.index(i)]
+            '''
+            set growth, Volume sizes and initial states of simulation #3
+            '''
+            # simulation method: simulator with stopcondition
+            method__2 = brn.simulation.VodeSimulatorStop
             
-            # initialize all 6 state-variables
-            for index in range(len(i.state)-1):
-                i.state[index] = initialstates[pop.cells.index(i)][index] 
-
-    # start simulating the cell population
-    pop.Population_Simulator(t_0 = t_0, t_end = t_end, n = n, 
-                         initial_states = initial_states__2,
-                         maximal_number = maximal_number__2, 
-                         method = method__2, stimulus = stimulus__2, 
-                         stopcondition = lambda x: x[V_index] >= 1.95 and 
-                                                   x[Mb_index] <= Mb_threshold)
-
-    '''
-    create variables of all states (+ volume) and store their values 
-    '''
-    # size of cell at the end for initialization of next simulation loop
-    Volume_end = [] 
-    
-    for i in pop.cells:
-        Ma.append([x[Ma_index] for x in i.trajectory])
-        Mb.append([x[Mb_index] for x in i.trajectory])
-        Md.append([x[Md_index] for x in i.trajectory])
-        Me.append([x[Me_index] for x in i.trajectory])
-        E2F.append([x[E2F_index] for x in i.trajectory])
-        Cdc20.append([x[Cdc20_index] for x in i.trajectory])
-        Volume.append([x[V_index] for x in i.trajectory])
-        Volume_end.append(i.size)
-
-    number = len(Ma)
-
-    '''
-    compute solution of ode (last state of cells)
-    compute theta on unit circle via mapping function
-    comput initialstates for next simulation-loop
-    '''
-    solution = [0] * number # solution of ODEs
-    initialstates = [0] * number # initial states for next loop
-    # variables for unit_circle and theta
-    theta = [0] * number
-    theta_unit_circle = [0] * number
-
-    # for initialization of next simulation loop    
-    for index in range(number): 
-        # compute solution of ODEs
-        solution[index] = (Ma[index][-1], Mb[index][-1], Me[index][-1], 
-                           E2F[index][-1], Cdc20[index][-1])
-        # phase theta of the oscillators (cells)
-        theta[index], theta_unit_circle[index] = \
-                    mapping(solution[index], limit_cycle_trajectory)
-        # save initialstates as last states of recent loop        
-        initialstates[index] = (Ma[index][-1], Mb[index][-1], Md[index][-1],
-                                Me[index][-1], E2F[index][-1], 
-                                Cdc20[index][-1])
+            # pdf for growth of cells
+            growth_pdf__2 = None
+            
+            # set inital states of species
+            initial_states__2 = None
+            
+            # initial volume
+            size_pdf__2 = None
+            
+            # no stimulus required
+            stimulus__2 = {}
+            
+            # maximal number of cells is same number as initial cells
+            maximal_number__2 = number
+        
+            # trajectorie of limit cycle for intialization
+            trajectories = limit_trajectories
+            
+            '''
+            inheritance at cell division
+            '''
+            # (factor = 1 --> mother and daughter identical)
+            # (factor = np.inf --> heterogeneous parameters are sampled from complete 
+            # distrubtion), factor is here chosen as small as possible to ensure 
+            # correct distribution of cells on cell cycle
+            max_div_fac__2 = 10
+            
+            # set input
+            if loop == 1:
+                net.set({'input': 0.})
+            else:
+                net.set({'input': input})
                 
-    theta = [theta[index] for index in range(len(Ma))]
-    
-    # split theta_unit_circle in real and imaginary
-    Re = []
-    Im = []
-    for ind in range(len(Ma)):    
-        Re.append(theta_unit_circle[ind].real)
-        Im.append(theta_unit_circle[ind].imag)
-    
-    # plot phase unit circle
-    if (loop == 1) or (loop == maximum-1):
-        plt.figure(figsize=(8,7.6))
-        plt.plot(Re, Im, marker = 'o', linestyle = 'None')
-        plt.xlabel('Re', fontdict=font)
-        plt.ylabel('Im', fontdict=font)
-        plt.xlim(-1, 1)
-        plt.ylim(-1, 1)
-        plt.grid(True)  
+            # initialize cell population
+            pop = population.Population(net, number, hetparameters = het_params__2,
+                                        growth = growth_pdf__2, size_pdf = size_pdf__2, 
+                                        max_divergence_factor=max_div_fac__2)
+            
+            '''
+            set initial states of population and initial volume
+            '''
+            # first simulation loop
+            if loop == 1:
+                # initialize volume
+                Volume_initialization = []
+                for i in range(number):
+                    Volume_initialization.append(V_trajectory[n_time[i]])
+                    
+                for i in pop.mother_cells:
+                    # initialize volume (size) and all 6 state-variables
+                    i.size = Volume_initialization[pop.mother_cells.index(i)]
+                    for index in range(len(i.state)-1):
+                        i.state[index] = \
+                                trajectories[n_time[pop.mother_cells.index(i)]][index]
         
-    varax = np.linspace(0., 2*np.pi, num=100)
-    # kernel density estimation
-    theta_pdf = pdf.estimate(theta, method="kde", varax=varax, 
-                             h=0.05, points=100)
-                             
-    # von Mises estimation
-    theta_pdf_mises = pdf.estimate(theta, method="vonMises", varax=varax, h=30,
-                                   points=100)      
-                             
-    # plot estimated distribution graph                         
-    if (loop == 1) or (loop == maximum-1):
-        plt.figure(figsize=(8,7))
-        plt.plot(theta_pdf_mises.varax, theta_pdf_mises.pdf)
-        plt.xlabel('phase of cells', fontdict=font)
-        plt.ylabel('density on unit circle', fontdict=font)
-        plt.xlim(0, 2*np.pi)
-        plt.ylim(0, 0.60)
+            # other simulation loops
+            else:
+                for i in pop.cells:
+                    # initialize volume
+                    i.size = Volume_end[pop.cells.index(i)]
+                    
+                    # initialize all 6 state-variables
+                    for index in range(len(i.state)-1):
+                        i.state[index] = initialstates[pop.cells.index(i)][index] 
         
-    '''
-    import phase response curve (PRC)
-    '''
-    data = open('Phase_Response_Curve_Z_v2010_startCb.dat')
-    data = data.read().split('\t')
-    data_list = []
-    for index in range(len(data)):
-        data_list.append(data[index].split('\n'))
+            # start simulating the cell population
+            pop.Population_Simulator(t_0 = t_0, t_end = t_end, n = n, 
+                                 initial_states = initial_states__2,
+                                 maximal_number = maximal_number__2, 
+                                 method = method__2, stimulus = stimulus__2, 
+                                 stopcondition = lambda x: x[V_index] >= 1.95 and 
+                                                           x[Mb_index] <= Mb_threshold)
         
-    # x in [0, 2* np.pi], z = values of PRC
-    x = []
-    z = []
-    for index in range(len(data_list)-2):
-        x.append(float(data_list[index+1][1]))
-        z.append(float(data_list[index+2][0]))
+            '''
+            create variables of all states (+ volume) and store their values 
+            '''
+            # size of cell at the end for initialization of next simulation loop
+            Volume_end = [] 
+            
+            for i in pop.cells:
+                Ma.append([x[Ma_index] for x in i.trajectory])
+                Mb.append([x[Mb_index] for x in i.trajectory])
+                Md.append([x[Md_index] for x in i.trajectory])
+                Me.append([x[Me_index] for x in i.trajectory])
+                E2F.append([x[E2F_index] for x in i.trajectory])
+                Cdc20.append([x[Cdc20_index] for x in i.trajectory])
+                Volume.append([x[V_index] for x in i.trajectory])
+                Volume_end.append(i.size)
         
-#    # plot PRC
-#    if (loop == 1):
-#        plt.figure(figsize=(8,7))
-#        plt.plot(x,z)
-#        plt.xlabel('phase', fontdict=font)
-#        plt.ylabel('phase response curve', fontdict=font)
-#        plt.xlim(0, 2*np.pi)    
+            number = len(Ma)
         
-    '''
-    transformation n(x,t) --> p(x,t), see paper       
-    '''        
-    q_tilde = 2 * growth_rate * np.exp(-growth_rate * np.array(x))
-    theta_tilde_pdf = theta_pdf_mises.pdf/q_tilde
-    transformed_theta_pdf = \
-        theta_tilde_pdf / np.trapz(np.array(theta_tilde_pdf), x=np.array(x))
-    
-    # complex number
-    j = complex(0, 1)
-    k = 1
-
-    # compute first circular moment
-    y = np.exp(j * k * np.array(x)) * transformed_theta_pdf
-    m_1 = np.trapz(y, x=np.array(x))
-    m_minus1 = np.conj(m_1)
-    
-    m1_values.append(m_1)
-    moments.append(abs(m_1))
-
-    '''
-    calculate input u
-    '''
-    d_minus1_complex = (growth_rate - j) * m_1
-    d_0_complex = m_1 * m_minus1 * (-2) * growth_rate
-    d_1_complex = (growth_rate + j) * m_minus1
-    
-    d_minus1 = d_minus1_complex * np.exp(j * -1 * np.array(x))
-    d_0 = d_0_complex.real
-    d_1 = d_1_complex * np.exp(j * 1 * np.array(x))   
-    
-    d_p = d_minus1 + d_0 + d_1    
-    y1 = z * d_p * transformed_theta_pdf
-    
-    input_complex = (np.trapz(y1, x=np.array(x)))
-    input_real = input_complex.real
-    input_values.append(input_real)
-    
-    if input_real < 0:
-        input = 0.
-    else:
-        # epsilon = strength of input
-        epsilon = 0.1
-        input = epsilon * input_real 
+            '''
+            compute solution of ode (last state of cells)
+            compute theta on unit circle via mapping function
+            comput initialstates for next simulation-loop
+            '''
+            solution = [0] * number # solution of ODEs
+            initialstates = [0] * number # initial states for next loop
+            # variables for unit_circle and theta
+            theta = [0] * number
+            theta_unit_circle = [0] * number
         
-    # plot limit cycle
-    if (loop == 1) or (loop == maximum-1):
-        plt.figure(figsize=(8,7))
-        for i in range(len(Ma)):
-            plt.plot(Ma[i], Mb[i], marker = 'o', linestyle = 'None')
-        plt.xlabel('cyclin A-CDK2', fontdict=font)
-        plt.ylabel('cyclin B-CDK1', fontdict=font)
+            # for initialization of next simulation loop    
+            for index in range(number): 
+                # compute solution of ODEs
+                solution[index] = (Ma[index][-1], Mb[index][-1], Me[index][-1], 
+                                   E2F[index][-1], Cdc20[index][-1])
+                # phase theta of the oscillators (cells)
+                theta[index], theta_unit_circle[index] = \
+                            mapping(solution[index], limit_cycle_trajectory)
+                # save initialstates as last states of recent loop        
+                initialstates[index] = (Ma[index][-1], Mb[index][-1], Md[index][-1],
+                                        Me[index][-1], E2F[index][-1], 
+                                        Cdc20[index][-1])
+                        
+            theta = [theta[index] for index in range(len(Ma))]
+            
+            # split theta_unit_circle in real and imaginary
+            Re = []
+            Im = []
+            for ind in range(len(Ma)):    
+                Re.append(theta_unit_circle[ind].real)
+                Im.append(theta_unit_circle[ind].imag)
+            
+            # plot phase unit circle
+            if loop == 1:
+                theta_begin = theta
+                plt.figure(figsize=(8,7.6))
+                plt.plot(Re, Im, marker = 'o', linestyle = 'None')
+                plt.xlabel('Re', fontdict=font)
+                plt.ylabel('Im', fontdict=font)
+                plt.xlim(-1, 1)
+                plt.ylim(-1, 1)
+                plt.grid(True)  
+            
+            if (loop == maximum-1):
+                theta_end = theta
+                plt.figure(figsize=(8,7.6))
+                plt.plot(Re, Im, marker = 'o', linestyle = 'None')
+                plt.xlabel('Re', fontdict=font)
+                plt.ylabel('Im', fontdict=font)
+                plt.xlim(-1, 1)
+                plt.ylim(-1, 1)
+                plt.grid(True)  
+                
+            varax = np.linspace(0., 2*np.pi, num=100)
+            # kernel density estimation
+            theta_pdf = pdf.estimate(theta, method="kde", varax=varax, 
+                                     h=0.05, points=100)
+                                     
+            # von Mises estimation
+            theta_pdf_mises = pdf.estimate(theta, method="vonMises", varax=varax, h=kappa,
+                                           points=100)      
+        
+            '''
+            import phase response curve (PRC)
+            '''
+            data = open('Phase_Response_Curve_Z_v2010_startCb.dat')
+            data = data.read().split('\t')
+            data_list = []
+            for index in range(len(data)):
+                data_list.append(data[index].split('\n'))
+                
+            # x in [0, 2* np.pi], z = values of PRC
+            x = []
+            z = []
+            for index in range(len(data_list)-2):
+                x.append(float(data_list[index+1][1]))
+                z.append(float(data_list[index+2][0]))
+                
+        #    # plot PRC
+        #    if (loop == 1):
+        #        plt.figure(figsize=(8,7))
+        #        plt.plot(x,z)
+        #        plt.xlabel('phase', fontdict=font)
+        #        plt.ylabel('phase response curve', fontdict=font)
+        #        plt.xlim(0, 2*np.pi)    
+                
+            '''
+            transformation n(x,t) --> p(x,t), see paper       
+            '''        
+            q_tilde = 2 * growth_rate * np.exp(-growth_rate * np.array(x))
+            theta_tilde_pdf = theta_pdf_mises.pdf/q_tilde
+            transformed_theta_pdf = \
+                theta_tilde_pdf / np.trapz(np.array(theta_tilde_pdf), x=np.array(x))
+        
+            # plot estimated distribution graph  and save first and last distribution                        
+            if (loop == 1):
+                theta_pdf_mises_begin = theta_pdf_mises.pdf
+                transformed_theta_pdf_begin = transformed_theta_pdf
+                fig_density_begin = plt.figure(figsize=(8,7))
+                plt.plot(theta_pdf_mises.varax, theta_pdf_mises.pdf)
+                plt.xlabel('phase of cells', fontdict=font)
+                plt.ylabel('density on unit circle', fontdict=font)
+                plt.xlim(0, 2*np.pi)
+                plt.ylim(0, 0.60)
+                fig_density_begin.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Density_Begin.png')
 
-'''
-save all values for parameter study
-'''
-file_name = 'File_Epsilon_%.3f_DivFac_%.3f_SimTime_%d' % (epsilon, max_div_fac__2, maximum-1)
-save_values_to_file(file_name, x, input_values, m1_values, moments, 
-                    theta, theta_pdf_mises.pdf, 
-                    transformed_theta_pdf)
+                
+            if (loop == maximum-1):
+                theta_pdf_mises_end = theta_pdf_mises.pdf
+                transformed_theta_pdf_end = transformed_theta_pdf
+                fig_density = plt.figure(figsize=(8,7))
+                plt.plot(theta_pdf_mises.varax, theta_pdf_mises.pdf)
+                plt.xlabel('phase of cells', fontdict=font)
+                plt.ylabel('density on unit circle', fontdict=font)
+                plt.xlim(0, 2*np.pi)
+                plt.ylim(0, 0.60)    
+                fig_density.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Density_End.png')
+        
+            
+            # complex number
+            j = complex(0, 1)
+            k = 1
+        
+            # compute first circular moment
+            y = np.exp(j * k * np.array(x)) * transformed_theta_pdf
+            m_1 = np.trapz(y, x=np.array(x))
+            m_minus1 = np.conj(m_1)
+            
+            m1_values.append(m_1)
+            moments.append(abs(m_1))
+        
+            '''
+            calculate input u
+            '''
+            d_minus1_complex = (growth_rate - j) * m_1
+            d_0_complex = m_1 * m_minus1 * (-2) * growth_rate
+            d_1_complex = (growth_rate + j) * m_minus1
+            
+            d_minus1 = d_minus1_complex * np.exp(j * -1 * np.array(x))
+            d_0 = d_0_complex.real
+            d_1 = d_1_complex * np.exp(j * 1 * np.array(x))   
+            
+            d_p = d_minus1 + d_0 + d_1    
+            y1 = z * d_p * transformed_theta_pdf
+            
+            input_complex = (np.trapz(y1, x=np.array(x)))
+            input_real = input_complex.real
+            input_values.append(input_real)
+            
+            if input_real < 0:
+                input = 0.
+            else:
+                # epsilon = strength of input
+                epsilon = 0.1
+                input = epsilon * input_real 
+                
+            # plot limit cycle
+            if loop == maximum-1:
+                fig_limit_cycle = plt.figure(figsize=(8,7))
+                for i in range(len(Ma)):
+                    plt.plot(Ma[i], Mb[i], marker = 'o', linestyle = 'None')
+                plt.xlabel('cyclin A-CDK2', fontdict=font)
+                plt.ylabel('cyclin B-CDK1', fontdict=font)
+                fig_limit_cycle.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/LimitCycle_End.png')
+        
+        '''
+        Create plots
+        '''
+        # linear interpolation of absolute of first circular moment, for 300 loops
+        #x = range(len(moments))
+        #xvals_list = [2.54, 17.96, 43.0, 64.94, 88.99, 115.025, 137.24, 162.0, 185.2, 
+        #              210.24, 232.45, 281.12]
+        #xvals = np.array(xvals_list)
+        #interp_y = moments
+        #interp = np.interp(xvals, x, interp_y)
+        
+        # plot absolute of first circular moment
+        fig_moments = plt.figure(figsize=(8,7))
+        plt.plot(range(len(moments)), moments)
+        #plt.plot(xvals, interp, linewidth=3, label='linear interpolated')
+        plt.xlabel('simulation time in hours', fontdict=font)
+        plt.ylabel('absolute moments', fontdict=font)
+        plt.legend(loc=4)
+        fig_moments.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Moments.png')
+        
+        # plot input
+        fig_input = plt.figure(figsize=(8,7))
+        plt.plot(range(len(input_values)), input_values)
+        plt.xlabel('simulation time in hours', fontdict=font)
+        plt.ylabel('input u', fontdict=font)
+        fig_input.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Input.png')
+        
+        '''
+        save all values for parameter study
+        '''
+        save_values.save_time_dependent_values(folder_name, file_name_1, input_values,
+                                               m1_values, moments)
+                                            
+        save_values.save_distribution_values(folder_name, file_name_2, varax, 
+                                             theta_pdf_mises_begin, theta_pdf_mises_end,
+                                             transformed_theta_pdf_begin,
+                                             transformed_theta_pdf_end)
+                                             
+        save_values.save_phase_dependent_values(folder_name, file_name_3, 
+                                                theta_begin, theta_end)
+                                             
+        save_values.save_information_file(folder_name, file_name_4, information_text)
 
-'''
-Create plots
-'''
-# linear interpolation of absolute of first circular moment, for 300 loops
-x = range(len(moments))
-xvals_list = [2.54, 17.96, 43.0, 64.94, 88.99, 115.025, 137.24, 162.0, 185.2, 
-              210.24, 232.45, 281.12]
-xvals = np.array(xvals_list)
-interp_y = moments
-interp = np.interp(xvals, x, interp_y)
-
-# plot absolute of first circular moment
-plt.figure(figsize=(8,7))
-plt.plot(range(len(moments)), moments)
-#plt.plot(xvals, interp, linewidth=3, label='linear interpolated')
-plt.xlabel('simulation time in hours', fontdict=font)
-plt.ylabel('absolute moments', fontdict=font)
-plt.legend(loc=4)
-
-# plot input
-plt.figure(figsize=(8,7))
-plt.plot(range(len(input_values)), input_values)
-plt.xlabel('simulation time in hours', fontdict=font)
-plt.ylabel('input u', fontdict=font)
-
-    
 '''
 -----------other plots if necessary, first: cells = pop.get_cells()------------
 '''
