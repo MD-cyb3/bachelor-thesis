@@ -140,7 +140,7 @@ input_values = []
 net = models.CellCycle_MD()
 
 # number of simulation loops
-maximum = 2
+maximum = 200
 
 ''' 
 simulate cells #3
@@ -195,7 +195,7 @@ for loop in range(1, maximum):
     # (factor = np.inf --> heterogeneous parameters are sampled from complete 
     # distrubtion), factor is here chosen as small as possible to ensure 
     # correct distribution of cells on cell cycle
-    max_div_fac__2 = 1.005
+    max_div_fac__2 = 3
     
     # set input
     if loop == 1:
@@ -338,19 +338,19 @@ for loop in range(1, maximum):
         x.append(float(data_list[index+1][1]))
         z.append(float(data_list[index+2][0]))
         
-    # plot PRC
-    if (loop == 1):
-        plt.figure(figsize=(8,7))
-        plt.plot(x,z)
-        plt.xlabel('phase', fontdict=font)
-        plt.ylabel('phase response curve', fontdict=font)
-        plt.xlim(0, 2*np.pi)    
+#    # plot PRC
+#    if (loop == 1):
+#        plt.figure(figsize=(8,7))
+#        plt.plot(x,z)
+#        plt.xlabel('phase', fontdict=font)
+#        plt.ylabel('phase response curve', fontdict=font)
+#        plt.xlim(0, 2*np.pi)    
         
     '''
     transformation n(x,t) --> p(x,t), see paper       
     '''        
     q_tilde = 2 * growth_rate * np.exp(-growth_rate * np.array(x))
-    theta_tilde_pdf = theta_pdf.pdf/q_tilde
+    theta_tilde_pdf = theta_pdf_mises.pdf/q_tilde
     transformed_theta_pdf = \
         theta_tilde_pdf / np.trapz(np.array(theta_tilde_pdf), x=np.array(x))
     
@@ -388,7 +388,7 @@ for loop in range(1, maximum):
         input = 0.
     else:
         # epsilon = strength of input
-        epsilon = 0.03
+        epsilon = 0.1
         input = epsilon * input_real 
         
     # plot limit cycle
@@ -404,7 +404,8 @@ save all values for parameter study
 '''
 file_name = 'File_Epsilon_%.3f_DivFac_%.3f_SimTime_%d' % (epsilon, max_div_fac__2, maximum-1)
 save_values_to_file(file_name, x, input_values, m1_values, moments, 
-                    theta, theta_pdf_mises.pdf, transformed_theta_pdf)
+                    theta, theta_pdf_mises.pdf, 
+                    transformed_theta_pdf)
 
 '''
 Create plots
@@ -420,7 +421,7 @@ interp = np.interp(xvals, x, interp_y)
 # plot absolute of first circular moment
 plt.figure(figsize=(8,7))
 plt.plot(range(len(moments)), moments)
-plt.plot(xvals, interp, linewidth=3, label='linear interpolated')
+#plt.plot(xvals, interp, linewidth=3, label='linear interpolated')
 plt.xlabel('simulation time in hours', fontdict=font)
 plt.ylabel('absolute moments', fontdict=font)
 plt.legend(loc=4)
