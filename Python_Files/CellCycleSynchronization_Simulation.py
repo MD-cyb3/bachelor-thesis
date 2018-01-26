@@ -148,8 +148,8 @@ maximum = 2
 kappa = 70
 
 # values for simulation study
-div_fac_values = 1.1 # [1.005, 1.1, 2., 10., 100.]
-epsilon_values = 0.04 # [0.01, 0.03, 0.1, 0.5, 1.0]
+div_fac_values = [1.05, 1.1] # [1.005, 1.1, 2., 10., 100.]
+epsilon_values = [0.04, 0.03] # [0.01, 0.03, 0.1, 0.5, 1.0]
 
 for max_div_fac in div_fac_values:
     print "Div_Fac = " + str(max_div_fac) + "\n"
@@ -196,9 +196,9 @@ for max_div_fac in div_fac_values:
         # save x values for the distributions
         varax = np.linspace(0., 2*np.pi, num=100)
         save_values_loop.append_values(base_folder, folder_name,
-                [file_name_5 + '.csv'], varax, 'x')
+                file_name_5 + '.csv', varax, 'x')
         save_values_loop.append_values(base_folder, folder_name,
-                [file_name_6 + '.csv'], varax, 'x')
+                file_name_6 + '.csv', varax, 'x')
         
         ''' 
         simulate cells #3
@@ -336,7 +336,7 @@ for max_div_fac in div_fac_values:
                 solution[index] = (Ma[index][-1], Mb[index][-1], Me[index][-1], 
                                    E2F[index][-1], Cdc20[index][-1])
                 # phase theta of the oscillators (cells)
-                theta[index], theta_unit_circle[index] = 
+                theta[index], theta_unit_circle[index] = \
                             mapping(solution[index], limit_cycle_trajectory)
                 # save initialstates as last states of recent loop        
                 initialstates[index] = (Ma[index][-1], Mb[index][-1], Md[index][-1],
@@ -347,8 +347,8 @@ for max_div_fac in div_fac_values:
             
             # split theta_unit_circle in real and imaginary
 
-            Re = theta_unit_circle.real
-            Im = theta_unit_circle.imag
+            Re = np.array(theta_unit_circle).real
+            Im = np.array(theta_unit_circle).imag
             #  Re = []
             #  Im = []
             #  for ind in range(len(Ma)):    
@@ -489,11 +489,11 @@ for max_div_fac in div_fac_values:
 
             # save the distribution, transformed distribution and theta
             save_values_loop.append_values(base_folder, folder_name,
-                    [file_name_5 + '.csv'], theta_pdf_mises, ['t_' + loop])
+                    file_name_5 + '.csv', theta_pdf_mises, 't_' + str(loop))
             save_values_loop.append_values(base_folder, folder_name,
-                    [file_name_6 + '.csv'], transformed_theta_pdf, ['t_' + loop])
+                    file_name_6 + '.csv', transformed_theta_pdf, 't_' + str(loop))
             save_values_loop.append_values(base_folder, folder_name,
-                    [file_name_7 + '.csv'], theta, ['t_' + loop])
+                    file_name_7 + '.csv', theta, 't_' + str(loop))
         
         '''
         Create plots
