@@ -22,6 +22,7 @@ from math import log
 import os
 
 import save_values
+import save_values_loop
 
 '''
 compute point psi on limit cycle with minimum distance to point z 
@@ -48,6 +49,9 @@ def mapping(z, limit_cycle):
 set simulation parameters #3
 third simulation with division of cells at stopcondition
 '''
+# define folders etc for saving variables
+base_folder = 'csv_files_kk'
+
 # turn interactive mode off
 plt.ioff()
 
@@ -138,14 +142,14 @@ het_params__2 = {'Ma': pdf_Ma, 'Mb': pdf_Mb, 'Me': pdf_Me, 'E2F': pdf_E2F,
 net = models.CellCycle_MD()
 
 # number of simulation loops
-maximum = 200
+maximum = 2
 
 # kappa for von Mises distribution
 kappa = 70
 
 # values for simulation study
-div_fac_values = [1.005, 1.1, 2., 10., 100.]
-epsilon_values = [0.01, 0.03, 0.1, 0.5, 1.0]
+div_fac_values = 1.1 # [1.005, 1.1, 2., 10., 100.]
+epsilon_values = 0.04 # [0.01, 0.03, 0.1, 0.5, 1.0]
 
 for max_div_fac in div_fac_values:
     print "Div_Fac = " + str(max_div_fac) + "\n"
@@ -169,6 +173,9 @@ for max_div_fac in div_fac_values:
         file_name_2 = 'Distribution_Values'
         file_name_3 = 'Phase_Dependent_Values'
         file_name_4 = 'Information about this folder'
+        file_name_5 = 'Full_time_Distributions'
+        file_name_6 = 'Full_time_transformed_Distribution'
+        file_name_7 = 'Full_time_theta'
         
         information_text = 'SimTime_%d, Kappa_%d, NumberOfCells%d' % (maximum-1, kappa, number)
         information_text += os.linesep
@@ -185,6 +192,13 @@ for max_div_fac in div_fac_values:
         directory_plots = os.path.dirname(name_of_path_plot_folder)
         if not os.path.exists(directory_plots):
             os.makedirs(directory_plots) 
+
+        # save x values for the distributions
+        varax = np.linspace(0., 2*np.pi, num=100)
+        save_values_loop.append_values(base_folder, folder_name,
+                [file_name_5 + '.csv'], varax, 'x')
+        save_values_loop.append_values(base_folder, folder_name,
+                [file_name_6 + '.csv'], varax, 'x')
         
         ''' 
         simulate cells #3
@@ -225,7 +239,7 @@ for max_div_fac in div_fac_values:
             
             # no stimulus required
             stimulus__2 = {}
-            
+            00
             # maximal number of cells is same number as initial cells
             maximal_number__2 = number
         
@@ -322,7 +336,7 @@ for max_div_fac in div_fac_values:
                 solution[index] = (Ma[index][-1], Mb[index][-1], Me[index][-1], 
                                    E2F[index][-1], Cdc20[index][-1])
                 # phase theta of the oscillators (cells)
-                theta[index], theta_unit_circle[index] = \
+                theta[index], theta_unit_circle[index] = 
                             mapping(solution[index], limit_cycle_trajectory)
                 # save initialstates as last states of recent loop        
                 initialstates[index] = (Ma[index][-1], Mb[index][-1], Md[index][-1],
@@ -332,11 +346,14 @@ for max_div_fac in div_fac_values:
             theta = [theta[index] for index in range(len(Ma))]
             
             # split theta_unit_circle in real and imaginary
-            Re = []
-            Im = []
-            for ind in range(len(Ma)):    
-                Re.append(theta_unit_circle[ind].real)
-                Im.append(theta_unit_circle[ind].imag)
+
+            Re = theta_unit_circle.real
+            Im = theta_unit_circle.imag
+            #  Re = []
+            #  Im = []
+            #  for ind in range(len(Ma)):    
+            #      Re.append(theta_unit_circle[ind].real)
+            #      Im.append(theta_unit_circle[ind].imag)
             
             # plot phase unit circle
             if loop == 1:
@@ -359,7 +376,6 @@ for max_div_fac in div_fac_values:
                 plt.ylim(-1, 1)
                 plt.grid(True)  
                 
-            varax = np.linspace(0., 2*np.pi, num=100)
             # kernel density estimation
             theta_pdf = pdf.estimate(theta, method="kde", varax=varax, 
                                      h=0.05, points=100)
@@ -367,7 +383,7 @@ for max_div_fac in div_fac_values:
             # von Mises estimation
             theta_pdf_mises = pdf.estimate(theta, method="vonMises", varax=varax, h=kappa,
                                            points=100)      
-        
+
             '''
             import phase response curve (PRC)
             '''
@@ -469,6 +485,15 @@ for max_div_fac in div_fac_values:
                 plt.xlabel('cyclin A-CDK2', fontdict=font)
                 plt.ylabel('cyclin B-CDK1', fontdict=font)
                 fig_limit_cycle.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/LimitCycle_End.png')
+
+
+            # save the distribution, transformed distribution and theta
+            save_values_loop.append_values(base_folder, folder_name,
+                    [file_name_5 + '.csv'], theta_pdf_mises, ['t_' + loop])
+            save_values_loop.append_values(base_folder, folder_name,
+                    [file_name_6 + '.csv'], transformed_theta_pdf, ['t_' + loop])
+            save_values_loop.append_values(base_folder, folder_name,
+                    [file_name_7 + '.csv'], theta, ['t_' + loop])
         
         '''
         Create plots

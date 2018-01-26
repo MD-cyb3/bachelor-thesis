@@ -2,6 +2,7 @@
 *.pyc
 *.directory
 *.goutputstream-T3M07W
+*.swp
 brn/
 **/popsim/Cell_Stimulus.py
 **/popsim/propfun.py
