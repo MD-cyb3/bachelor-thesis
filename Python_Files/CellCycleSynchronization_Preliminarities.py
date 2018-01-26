@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import time
+import pickle
 # packages of pybrn
 import brn
 from popsim import population
@@ -261,3 +262,12 @@ limit_cycle_trajectory = zip(Ma_trajectory, Mb_trajectory, Me_trajectory,
 # for initialization of cell population
 limit_trajectories = zip(Ma_trajectory, Mb_trajectory, Md_trajectory, 
                          Me_trajectory, E2F_trajectory, Cdc20_trajectory)
+
+# save stuff for main simulation 
+with open( 'limit_cycle_trajectory.p', 'wb' ) as f:
+    pickle.dump( limit_cycle_trajectory, f)
+with open( 'limit_trajectories.p', 'wb' ) as f:
+    pickle.dump( limit_trajectories, f)
+with open( 'V_trajectory.p', 'wb' ) as f:
+    pickle.dump( V_trajectory, f)
+

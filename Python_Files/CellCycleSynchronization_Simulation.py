@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 from math import log
 
 import os
+import pickle
 
 import save_values
 import save_values_loop
@@ -49,6 +50,16 @@ def mapping(z, limit_cycle):
 set simulation parameters #3
 third simulation with division of cells at stopcondition
 '''
+
+# load limit cycle trajactory from Prelims simulation for initializaiton and
+# mapping
+with open( 'limit_cycle_trajectory.p', 'rb' ) as f:
+    limit_cycle_trajectory = pickle.load(f)
+with open( 'limit_trajectories.p', 'rb' ) as f:
+    limit_trajectories = pickle.load(f)
+with open( 'V_trajectory.p', 'rb' ) as f:
+    V_trajectory = pickle.load(f)
+
 # define folders etc for saving variables
 base_folder = 'csv_files_kk'
 
@@ -57,7 +68,7 @@ plt.ioff()
 
 number = 3000 # number of mother cells at t=0
 t_0 = 0.
-t_end = 1 # in hours
+t_end = 4 # in hours
 n = 2 # simulation steps
 
 # time for one period
@@ -140,6 +151,16 @@ het_params__2 = {'Ma': pdf_Ma, 'Mb': pdf_Mb, 'Me': pdf_Me, 'E2F': pdf_E2F,
 
 # cell cycle model
 net = models.CellCycle_MD()
+
+# get species indices
+V_index = net.species.index('V')
+Ma_index = net.species.index('Ma')
+Mb_index = net.species.index('Mb')
+Md_index = net.species.index('Md')
+Me_index = net.species.index('Me')
+E2F_index = net.species.index('E2F')
+Cdc20_index = net.species.index('Cdc20')
+Mb_threshold = 4.46012197091e-05
 
 # number of simulation loops
 maximum = 2
@@ -489,7 +510,7 @@ for max_div_fac in div_fac_values:
 
             # save the distribution, transformed distribution and theta
             save_values_loop.append_values(base_folder, folder_name,
-                    file_name_5 + '.csv', theta_pdf_mises, 't_' + str(loop))
+                    file_name_5 + '.csv', theta_pdf_mises.pdf, 't_' + str(loop))
             save_values_loop.append_values(base_folder, folder_name,
                     file_name_6 + '.csv', transformed_theta_pdf, 't_' + str(loop))
             save_values_loop.append_values(base_folder, folder_name,
