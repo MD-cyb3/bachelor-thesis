@@ -144,8 +144,10 @@ maximum = 200
 kappa = 70
 
 # values for simulation study
-div_fac_values = [1.005, 1.1, 2., 10., 100.]
-epsilon_values = [0.01, 0.03, 0.1, 0.5, 1.0]
+# div_fac_values = [1.005, 1.1, 2., 10., 100.]
+# epsilon_values = [0.01, 0.03, 0.1, 0.5, 1.0]
+div_fac_values = [10., 100.]
+epsilon_values = [0.03, 0.05]
 
 for max_div_fac in div_fac_values:
     print "Div_Fac = " + str(max_div_fac) + "\n"
@@ -341,23 +343,23 @@ for max_div_fac in div_fac_values:
             # plot phase unit circle
             if loop == 1:
                 theta_begin = theta
-                plt.figure(figsize=(8,7.6))
-                plt.plot(Re, Im, marker = 'o', linestyle = 'None')
-                plt.xlabel('Re', fontdict=font)
-                plt.ylabel('Im', fontdict=font)
-                plt.xlim(-1, 1)
-                plt.ylim(-1, 1)
-                plt.grid(True)  
+#                plt.figure(figsize=(8,7.6))
+#                plt.plot(Re, Im, marker = 'o', linestyle = 'None')
+#                plt.xlabel('Re', fontdict=font)
+#                plt.ylabel('Im', fontdict=font)
+#                plt.xlim(-1, 1)
+#                plt.ylim(-1, 1)
+#                plt.grid(True)  
             
             if (loop == maximum-1):
                 theta_end = theta
-                plt.figure(figsize=(8,7.6))
-                plt.plot(Re, Im, marker = 'o', linestyle = 'None')
-                plt.xlabel('Re', fontdict=font)
-                plt.ylabel('Im', fontdict=font)
-                plt.xlim(-1, 1)
-                plt.ylim(-1, 1)
-                plt.grid(True)  
+#                plt.figure(figsize=(8,7.6))
+#                plt.plot(Re, Im, marker = 'o', linestyle = 'None')
+#                plt.xlabel('Re', fontdict=font)
+#                plt.ylabel('Im', fontdict=font)
+#                plt.xlim(-1, 1)
+#                plt.ylim(-1, 1)
+#                plt.grid(True)  
                 
             varax = np.linspace(0., 2*np.pi, num=100)
             # kernel density estimation
@@ -411,7 +413,7 @@ for max_div_fac in div_fac_values:
                 plt.xlim(0, 2*np.pi)
                 plt.ylim(0, 0.60)
                 fig_density_begin.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Density_Begin.png')
-
+                plt.close(fig_density_begin)
                 
             if (loop == maximum-1):
                 theta_pdf_mises_end = theta_pdf_mises.pdf
@@ -423,7 +425,7 @@ for max_div_fac in div_fac_values:
                 plt.xlim(0, 2*np.pi)
                 plt.ylim(0, 0.60)    
                 fig_density.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Density_End.png')
-        
+                plt.close(fig_density)
             
             # complex number
             j = complex(0, 1)
@@ -469,6 +471,7 @@ for max_div_fac in div_fac_values:
                 plt.xlabel('cyclin A-CDK2', fontdict=font)
                 plt.ylabel('cyclin B-CDK1', fontdict=font)
                 fig_limit_cycle.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/LimitCycle_End.png')
+                plt.close(fig_limit_cycle)
         
         '''
         Create plots
@@ -489,6 +492,7 @@ for max_div_fac in div_fac_values:
         plt.ylabel('absolute moments', fontdict=font)
         plt.legend(loc=4)
         fig_moments.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Moments.png')
+        plt.close(fig_moments)       
         
         # plot input
         fig_input = plt.figure(figsize=(8,7))
@@ -496,6 +500,7 @@ for max_div_fac in div_fac_values:
         plt.xlabel('simulation time in hours', fontdict=font)
         plt.ylabel('input u', fontdict=font)
         fig_input.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Input.png')
+        plt.close(fig_input)        
         
         '''
         save all values for parameter study
