@@ -8,8 +8,8 @@ import numpy as np
 import csv
 import os
 
-def save_time_dependent_values(folder_name ,file_name, u, m1, abs_m1):
-    name_of_folder = 'csv_files_simulation_SECONDstudy/' + folder_name + '/'
+def save_time_dependent_values(base_folder,folder_name ,file_name, u, m1, abs_m1):
+    name_of_folder = base_folder + '/' + folder_name + '/'
     name_of_path = name_of_folder + file_name + '.csv'
 
     directory = os.path.dirname(name_of_path)
@@ -25,8 +25,8 @@ def save_time_dependent_values(folder_name ,file_name, u, m1, abs_m1):
         writer.writerow(headers)
         writer.writerows(values)
         
-def save_distribution_values(folder_name ,file_name, x, n_begin, n_end, p_begin, p_end):
-    name_of_folder = 'csv_files_simulation_SECONDstudy/' + folder_name + '/'
+def save_distribution_values(base_folder,folder_name ,file_name, x, n_begin, n_end, p_begin, p_end):
+    name_of_folder = base_folder + '/' + folder_name + '/'
     name_of_path = name_of_folder + file_name + '.csv'
 
     directory = os.path.dirname(name_of_path)
@@ -42,8 +42,8 @@ def save_distribution_values(folder_name ,file_name, x, n_begin, n_end, p_begin,
         writer.writerow(headers)
         writer.writerows(values)
         
-def save_phase_dependent_values(folder_name, file_name, theta_begin, theta_end):
-    name_of_folder = 'csv_files_simulation_SECONDstudy/' + folder_name + '/'
+def save_phase_dependent_values(base_folder, folder_name, file_name, theta_begin, theta_end):
+    name_of_folder = base_folder + '/' + folder_name + '/'
     name_of_path = name_of_folder + file_name + '.csv'
 
     directory = os.path.dirname(name_of_path)
@@ -59,8 +59,8 @@ def save_phase_dependent_values(folder_name, file_name, theta_begin, theta_end):
         writer.writerow(headers)
         writer.writerows(values)
         
-def save_information_file(folder_name ,file_name, info_text):
-    name_of_folder = 'csv_files_simulation_SECONDstudy/' + folder_name + '/'
+def save_information_file(base_folder, folder_name ,file_name, info_text):
+    name_of_folder = base_folder + '/' + folder_name + '/'
     name_of_path = name_of_folder + file_name + '.txt'
 
     directory = os.path.dirname(name_of_path)

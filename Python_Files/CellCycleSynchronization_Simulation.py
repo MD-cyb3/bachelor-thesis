@@ -163,14 +163,14 @@ Cdc20_index = net.species.index('Cdc20')
 Mb_threshold = 4.46012197091e-05
 
 # number of simulation loops
-maximum = 2
+maximum = 500
 
 # kappa for von Mises distribution
 kappa = 70
 
 # values for simulation study
-div_fac_values = [1.05, 1.1] # [1.005, 1.1, 2., 10., 100.]
-epsilon_values = [0.04, 0.03] # [0.01, 0.03, 0.1, 0.5, 1.0]
+div_fac_values = [1.005, 1.01, 1.05, 1.1, 1.15, 1.2, 1.25] # [1.005, 1.1, 2., 10., 100.]
+epsilon_values = [0, 0.01, 0.02, 0.03, 0.04, 0.05] # [0.01, 0.03, 0.1, 0.5, 1.0]
 
 for max_div_fac in div_fac_values:
     print "Div_Fac = " + str(max_div_fac) + "\n"
@@ -379,6 +379,7 @@ for max_div_fac in div_fac_values:
             # plot phase unit circle
             if loop == 1:
                 theta_begin = theta
+                '''
                 plt.figure(figsize=(8,7.6))
                 plt.plot(Re, Im, marker = 'o', linestyle = 'None')
                 plt.xlabel('Re', fontdict=font)
@@ -386,9 +387,11 @@ for max_div_fac in div_fac_values:
                 plt.xlim(-1, 1)
                 plt.ylim(-1, 1)
                 plt.grid(True)  
+                '''
             
             if (loop == maximum-1):
                 theta_end = theta
+                '''
                 plt.figure(figsize=(8,7.6))
                 plt.plot(Re, Im, marker = 'o', linestyle = 'None')
                 plt.xlabel('Re', fontdict=font)
@@ -396,6 +399,7 @@ for max_div_fac in div_fac_values:
                 plt.xlim(-1, 1)
                 plt.ylim(-1, 1)
                 plt.grid(True)  
+                '''
                 
             # kernel density estimation
             theta_pdf = pdf.estimate(theta, method="kde", varax=varax, 
@@ -441,6 +445,7 @@ for max_div_fac in div_fac_values:
             if (loop == 1):
                 theta_pdf_mises_begin = theta_pdf_mises.pdf
                 transformed_theta_pdf_begin = transformed_theta_pdf
+                '''
                 fig_density_begin = plt.figure(figsize=(8,7))
                 plt.plot(theta_pdf_mises.varax, theta_pdf_mises.pdf)
                 plt.xlabel('phase of cells', fontdict=font)
@@ -448,11 +453,13 @@ for max_div_fac in div_fac_values:
                 plt.xlim(0, 2*np.pi)
                 plt.ylim(0, 0.60)
                 fig_density_begin.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Density_Begin.png')
+                '''
 
                 
             if (loop == maximum-1):
                 theta_pdf_mises_end = theta_pdf_mises.pdf
                 transformed_theta_pdf_end = transformed_theta_pdf
+                '''
                 fig_density = plt.figure(figsize=(8,7))
                 plt.plot(theta_pdf_mises.varax, theta_pdf_mises.pdf)
                 plt.xlabel('phase of cells', fontdict=font)
@@ -460,6 +467,7 @@ for max_div_fac in div_fac_values:
                 plt.xlim(0, 2*np.pi)
                 plt.ylim(0, 0.60)    
                 fig_density.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Density_End.png')
+                '''
         
             
             # complex number
@@ -498,6 +506,7 @@ for max_div_fac in div_fac_values:
                 # epsilon = strength of input
                 input = epsilon * input_real 
                 
+            '''
             # plot limit cycle
             if loop == maximum-1:
                 fig_limit_cycle = plt.figure(figsize=(8,7))
@@ -506,6 +515,7 @@ for max_div_fac in div_fac_values:
                 plt.xlabel('cyclin A-CDK2', fontdict=font)
                 plt.ylabel('cyclin B-CDK1', fontdict=font)
                 fig_limit_cycle.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/LimitCycle_End.png')
+            '''
 
 
             # save the distribution, transformed distribution and theta
@@ -527,6 +537,7 @@ for max_div_fac in div_fac_values:
         #interp_y = moments
         #interp = np.interp(xvals, x, interp_y)
         
+        '''
         # plot absolute of first circular moment
         fig_moments = plt.figure(figsize=(8,7))
         plt.plot(range(len(moments)), moments)
@@ -542,22 +553,23 @@ for max_div_fac in div_fac_values:
         plt.xlabel('simulation time in hours', fontdict=font)
         plt.ylabel('input u', fontdict=font)
         fig_input.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/Input.png')
+        '''
         
         '''
         save all values for parameter study
         '''
-        save_values.save_time_dependent_values(folder_name, file_name_1, input_values,
+        save_values.save_time_dependent_values(base_folder, folder_name, file_name_1, input_values,
                                                m1_values, moments)
                                             
-        save_values.save_distribution_values(folder_name, file_name_2, varax, 
+        save_values.save_distribution_values(base_folder, folder_name, file_name_2, varax, 
                                              theta_pdf_mises_begin, theta_pdf_mises_end,
                                              transformed_theta_pdf_begin,
                                              transformed_theta_pdf_end)
                                              
-        save_values.save_phase_dependent_values(folder_name, file_name_3, 
+        save_values.save_phase_dependent_values(base_folder, folder_name, file_name_3, 
                                                 theta_begin, theta_end)
                                              
-        save_values.save_information_file(folder_name, file_name_4, information_text)
+        save_values.save_information_file(base_folder, folder_name, file_name_4, information_text)
 
 '''
 -----------other plots if necessary, first: cells = pop.get_cells()------------
