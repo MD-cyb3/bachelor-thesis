@@ -134,13 +134,6 @@ pdf_Cdc20 =pdf.lognormal(division_states[4], 0.1, numpoints=400)
 het_params__2 = {'Ma': pdf_Ma, 'Mb': pdf_Mb, 'Me': pdf_Me, 'E2F': pdf_E2F, 
                  'Cdc20': pdf_Cdc20}
 
-# store moments of cell population
-moments = [] # absolute values
-m1_values = [] # normal values
-
-# store calculated input
-input_values = []
-
 # cell cycle model
 net = models.CellCycle_MD()
 
@@ -160,6 +153,13 @@ for max_div_fac in div_fac_values:
     for epsilon in epsilon_values:
         print "Epsilon = " + str(epsilon) + "\n"
         
+        # store moments of cell population
+        moments = [] # absolute values
+        m1_values = [] # normal values
+        
+        # store calculated input
+        input_values = []        
+        
         '''
         set folder and file names to save values
         '''
@@ -170,7 +170,7 @@ for max_div_fac in div_fac_values:
         file_name_3 = 'Phase_Dependent_Values'
         file_name_4 = 'Information about this folder'
         
-        information_text = 'SimTime_%d, Kappa_%d, NumberOfCells%d' % (maximum-1, kappa, maximal_number__2)
+        information_text = 'SimTime_%d, Kappa_%d, NumberOfCells%d' % (maximum-1, kappa, number)
         information_text += os.linesep
         information_text += 'Time_Dependent_Values with input u(t), moments m1(t), and absolut of moments |m1(t)|'
         information_text += os.linesep
@@ -239,7 +239,7 @@ for max_div_fac in div_fac_values:
             # (factor = np.inf --> heterogeneous parameters are sampled from complete 
             # distrubtion), factor is here chosen as small as possible to ensure 
             # correct distribution of cells on cell cycle
-            max_div_fac__2 = 10
+            max_div_fac__2 = max_div_fac
             
             # set input
             if loop == 1:
@@ -459,7 +459,6 @@ for max_div_fac in div_fac_values:
                 input = 0.
             else:
                 # epsilon = strength of input
-                epsilon = 0.1
                 input = epsilon * input_real 
                 
             # plot limit cycle
