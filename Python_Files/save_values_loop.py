@@ -21,5 +21,5 @@ def append_values(base_folder, folder_name, file_name, values, header):
 
     with open(fullfile, append_write) as f:
         writer = csv.writer(f)
-        writer.writerow([header, values])
+        writer.writerow(header + values)
 
