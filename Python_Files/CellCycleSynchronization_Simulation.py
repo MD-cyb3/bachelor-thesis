@@ -217,9 +217,9 @@ for max_div_fac in div_fac_values:
         # save x values for the distributions
         varax = np.linspace(0., 2*np.pi, num=100)
         save_values_loop.append_values(base_folder, folder_name,
-                file_name_5 + '.csv', varax, 'x')
+                file_name_5 + '.csv', varax.tolist(), ['x'])
         save_values_loop.append_values(base_folder, folder_name,
-                file_name_6 + '.csv', varax, 'x')
+                file_name_6 + '.csv', varax.tolist(), ['x'])
         
         ''' 
         simulate cells #3
@@ -277,10 +277,10 @@ for max_div_fac in div_fac_values:
             max_div_fac__2 = max_div_fac
             
             # set input
-            #  if loop == 1:
-            #      net.set({'input': 0.})
-            #  else:
-            net.set({'input': input})
+            if loop == 1:
+                net.set({'input': 0.})
+            else:
+                net.set({'input': input})
                 
             # initialize cell population
             pop = population.Population(net, number, hetparameters = het_params__2,
@@ -518,15 +518,14 @@ for max_div_fac in div_fac_values:
             '''
             pdf_list = theta_pdf_mises.pdf.tolist()
             transformed_list = transformed_theta_pdf.tolist()
-            theta_list = theta.tolist()
 
             # save the distribution, transformed distribution and theta
             save_values_loop.append_values(base_folder, folder_name,
-                    file_name_5 + '.csv', pdf_list, 't_' + str(loop))
+                    file_name_5 + '.csv', pdf_list, ['t_' + str(loop)])
             save_values_loop.append_values(base_folder, folder_name,
-                    file_name_6 + '.csv', transformed_list, 't_' + str(loop))
+                    file_name_6 + '.csv', transformed_list, ['t_' + str(loop)])
             save_values_loop.append_values(base_folder, folder_name,
-                    file_name_7 + '.csv', theta_list, 't_' + str(loop))
+                    file_name_7 + '.csv', theta, ['t_' + str(loop)])
         
         '''
         Create plots
