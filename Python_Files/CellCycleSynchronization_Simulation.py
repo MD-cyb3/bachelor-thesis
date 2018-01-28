@@ -61,14 +61,14 @@ with open( 'V_trajectory.p', 'rb' ) as f:
     V_trajectory = pickle.load(f)
 
 # define folders etc for saving variables
-base_folder = 'csv_files_kk'
+base_folder = 'csv_files_kk2'
 
 # turn interactive mode off
 plt.ioff()
 
 number = 3000 # number of mother cells at t=0
 t_0 = 0.
-t_end = 4 # in hours
+t_end = 1 # in hours
 n = 2 # simulation steps
 
 # time for one period
@@ -260,7 +260,7 @@ for max_div_fac in div_fac_values:
             
             # no stimulus required
             stimulus__2 = {}
-            00
+            
             # maximal number of cells is same number as initial cells
             maximal_number__2 = number
         
@@ -277,10 +277,10 @@ for max_div_fac in div_fac_values:
             max_div_fac__2 = max_div_fac
             
             # set input
-            if loop == 1:
-                net.set({'input': 0.})
-            else:
-                net.set({'input': input})
+            #  if loop == 1:
+            #      net.set({'input': 0.})
+            #  else:
+            net.set({'input': input})
                 
             # initialize cell population
             pop = population.Population(net, number, hetparameters = het_params__2,
@@ -516,15 +516,17 @@ for max_div_fac in div_fac_values:
                 plt.ylabel('cyclin B-CDK1', fontdict=font)
                 fig_limit_cycle.savefig('csv_files_simulation_SECONDstudy/' + folder_name + '/Plots/LimitCycle_End.png')
             '''
-
+            pdf_list = theta_pdf_mises.pdf.tolist()
+            transformed_list = transformed_theta_pdf.tolist()
+            theta_list = theta.tolist()
 
             # save the distribution, transformed distribution and theta
             save_values_loop.append_values(base_folder, folder_name,
-                    file_name_5 + '.csv', theta_pdf_mises.pdf, 't_' + str(loop))
+                    file_name_5 + '.csv', pdf_list, 't_' + str(loop))
             save_values_loop.append_values(base_folder, folder_name,
-                    file_name_6 + '.csv', transformed_theta_pdf, 't_' + str(loop))
+                    file_name_6 + '.csv', transformed_list, 't_' + str(loop))
             save_values_loop.append_values(base_folder, folder_name,
-                    file_name_7 + '.csv', theta, 't_' + str(loop))
+                    file_name_7 + '.csv', theta_list, 't_' + str(loop))
         
         '''
         Create plots
