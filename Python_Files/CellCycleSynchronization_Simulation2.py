@@ -169,8 +169,8 @@ maximum = 500
 kappa = 70
 
 # values for simulation study
-div_fac_values = [1.005, 1.01, 1.05] # [1.005, 1.1, 2., 10., 100.]
-#  div_fac_values = [1.1, 1.15, 1.2, 1.25] # [1.005, 1.1, 2., 10., 100.]
+#  div_fac_values = [1.005, 1.01, 1.05] # [1.005, 1.1, 2., 10., 100.]
+div_fac_values = [1.1, 1.15, 1.2, 1.25] # [1.005, 1.1, 2., 10., 100.]
 epsilon_values = [0, 0.01, 0.02, 0.03, 0.04, 0.05] # [0.01, 0.03, 0.1, 0.5, 1.0]
 
 for max_div_fac in div_fac_values:
