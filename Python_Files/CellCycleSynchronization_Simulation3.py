@@ -141,11 +141,11 @@ initial heterogeneous parameters
 '''
 # center of lognormal distribution is a single value of the various states
 # at cell division
-pdf_Ma = pdf.lognormal(division_states[0], 0.1, numpoints=400)
-pdf_Mb = pdf.lognormal(division_states[1], 0.1, numpoints=400)
-pdf_Me = pdf.lognormal(division_states[2], 0.1, numpoints=400)
-pdf_E2F = pdf.lognormal(division_states[3], 0.1, numpoints=400)
-pdf_Cdc20 =pdf.lognormal(division_states[4], 0.1, numpoints=400)
+pdf_Ma = pdf.lognormal(division_states[0], 0.3, numpoints=400)
+pdf_Mb = pdf.lognormal(division_states[1], 0.3, numpoints=400)
+pdf_Me = pdf.lognormal(division_states[2], 0.3, numpoints=400)
+pdf_E2F = pdf.lognormal(division_states[3], 0.3, numpoints=400)
+pdf_Cdc20 =pdf.lognormal(division_states[4], 0.3, numpoints=400)
 het_params__2 = {'Ma': pdf_Ma, 'Mb': pdf_Mb, 'Me': pdf_Me, 'E2F': pdf_E2F, 
                  'Cdc20': pdf_Cdc20}
 
@@ -171,8 +171,8 @@ kappa = 70
 # values for simulation study
 #  div_fac_values = [1.005, 1.01, 1.05] # [1.005, 1.1, 2., 10., 100.]
 #  div_fac_values = [1.1, 1.15, 1.2, 1.25] # [1.005, 1.1, 2., 10., 100.]
-div_fac_values = [1.005, 1.05, 1.15, 1.25] # [1.005, 1.1, 2., 10., 100.]
-epsilon_values = [0.012, 0.015, 0.018] # [0.01, 0.03, 0.1, 0.5, 1.0]
+div_fac_values = [1.005, 10000] # [1.005, 1.1, 2., 10., 100.]
+epsilon_values = [0.02, 0.03] # [0.01, 0.03, 0.1, 0.5, 1.0]
 
 for max_div_fac in div_fac_values:
     print "Div_Fac = " + str(max_div_fac) + "\n"
