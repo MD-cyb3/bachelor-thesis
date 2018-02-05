@@ -61,7 +61,7 @@ with open( 'V_trajectory.p', 'rb' ) as f:
     V_trajectory = pickle.load(f)
 
 # define folders etc for saving variables
-base_folder = 'csv_files_kk2'
+base_folder = 'csv_files_MD'
 
 # turn interactive mode off
 plt.ioff()
@@ -208,7 +208,7 @@ for max_div_fac in div_fac_values:
         information_text += os.linesep
         information_text += 'Phase_Dependent_Values with phase theta(0), theta(t_end)'
         
-        name_of_path = 'csv_files_simulation_SECONDstudy/' + folder_name + '/'
+        name_of_path = 'csv_files_simulation_NEWstudyNEWstd/' + folder_name + '/'
         name_of_path_plot_folder = name_of_path + 'Plots/'
         
         # create directory for plots
