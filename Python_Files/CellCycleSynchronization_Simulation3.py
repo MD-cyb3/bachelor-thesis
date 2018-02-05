@@ -61,7 +61,9 @@ with open( 'V_trajectory.p', 'rb' ) as f:
     V_trajectory = pickle.load(f)
 
 # define folders etc for saving variables
-base_folder = 'csv_files_MD'
+std = 0.3
+
+base_folder = 'csv_files_MD_&d' % (std)
 
 # turn interactive mode off
 plt.ioff()
@@ -141,11 +143,11 @@ initial heterogeneous parameters
 '''
 # center of lognormal distribution is a single value of the various states
 # at cell division
-pdf_Ma = pdf.lognormal(division_states[0], 0.3, numpoints=400)
-pdf_Mb = pdf.lognormal(division_states[1], 0.3, numpoints=400)
-pdf_Me = pdf.lognormal(division_states[2], 0.3, numpoints=400)
-pdf_E2F = pdf.lognormal(division_states[3], 0.3, numpoints=400)
-pdf_Cdc20 =pdf.lognormal(division_states[4], 0.3, numpoints=400)
+pdf_Ma = pdf.lognormal(division_states[0], std, numpoints=400)
+pdf_Mb = pdf.lognormal(division_states[1], std, numpoints=400)
+pdf_Me = pdf.lognormal(division_states[2], std, numpoints=400)
+pdf_E2F = pdf.lognormal(division_states[3], std, numpoints=400)
+pdf_Cdc20 =pdf.lognormal(division_states[4], std, numpoints=400)
 het_params__2 = {'Ma': pdf_Ma, 'Mb': pdf_Mb, 'Me': pdf_Me, 'E2F': pdf_E2F, 
                  'Cdc20': pdf_Cdc20}
 
