@@ -61,9 +61,9 @@ with open( 'V_trajectory.p', 'rb' ) as f:
     V_trajectory = pickle.load(f)
 
 # define folders etc for saving variables
-std = 0.3
+std = 0.2
 
-base_folder = 'csv_files_MD_&d' % (std)
+base_folder = 'csv_files_MD_%.1f' % (std)
 
 # turn interactive mode off
 plt.ioff()
