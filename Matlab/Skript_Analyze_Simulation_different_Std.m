@@ -11,19 +11,21 @@
 
 % 1) Set necessary variables and files settings
 
-epsilons	= [0.01, 0.012, 0.014, 0.016, 0.018, 0.02]; % N
-div_factors = [1.005, 1.05 1.15, 1.25];			 % m
+Std			= [0.2,0.3];
+epsilons	= [ 0.02, 0.03]; % N
+div_factors = [1.005, 10000];			 % m
 
-div_names = {'1.005','inf'};
-
+K	= length(Std);
 N	= length(epsilons);
 M	= length(div_factors);
 
 % prallocate
 
-[m1_t, u, x, p_xt, n_xt, theta_t] = deal(cell(N,M));
+[m1_t, u, x, p_xt, n_xt, theta_t] = deal(cell(N,M,K));
 
-base_folder = '../Python_Files/csv_files_kk2/';
+for k = 1:K
+
+base_folder = sprintf('../Python_Files/csv_files_MD_%0.1f/',Std(k));
 
 m1_u_file	= 'Time_Dependent_Values.csv';
 n_file		= 'Full_time_Distributions.csv';
@@ -46,40 +48,41 @@ for n = 1:N		% epsilon
 		m1_cell		= strrep(m1_cell,'j','i');
 		m1_cell		= strrep(m1_cell,'(','');
 		m1_cell		= strrep(m1_cell,')','');
-		m1_t{n,m}	= str2double(m1_cell);
-		u{n,m}		= table2array(datatable(2:end,1));
+		m1_t{n,m,k}	= str2double(m1_cell);
+		u{n,m,k}		= table2array(datatable(2:end,1));
 		
 		% x, n_xt
 		
 		data_file	= fullfile(base_folder,this_folder_name,n_file);
 		datatable	= readtable(data_file,'Delimiter',',','ReadVariableNames',0,'ReadRowNames',1);
 		dataarray	= table2array(datatable)';
-		x{n,m}		= dataarray(:,1);
-		n_xt{n,m}	= dataarray(:,2:end);
+		x{n,m,k}		= dataarray(:,1);
+		n_xt{n,m,k}	= dataarray(:,2:end);
 		
 		% x, p_xt,	
 		data_file	= fullfile(base_folder,this_folder_name,p_file);
 		datatable	= readtable(data_file,'Delimiter',',','ReadVariableNames',0,'ReadRowNames',1);
 		dataarray	= table2array(datatable)';
-		p_xt{n,m}	= dataarray(:,2:end);
+		p_xt{n,m,k}	= dataarray(:,2:end);
 		
 		% theta 
 		data_file	= fullfile(base_folder,this_folder_name,theta_file);
 		datatable	= readtable(data_file,'Delimiter',',','ReadVariableNames',0,'ReadRowNames',1);
-		theta_t{n,m}= table2array(datatable)';
+		theta_t{n,m,k}= table2array(datatable)';
 		
 	end
 end
-
+end
 %% 3) Analyze the simulation data
 
 a = 1;
-b = 3;
+b = 2;
 t = 0:length(u{1});
 
 grect = [20 20 1000 600];
 fh2= figure('Color','w','Position',grect);
 legstr = cell(N*M,1);
+for k = 1:K
 for n = 1:N
 	for m = 1:M
 % 		subplot(a,b,1)
@@ -88,11 +91,11 @@ for n = 1:N
 % 		ylabel('input')
 % 		hold on
 		
-% 		subplot(a,b,2);
-		plot(t,abs(m1_t{n,m}))
+		subplot(a,b,k);
+		plot(t,abs(m1_t{n,m,k}))
 		ylabel('length first moment')
 		xlabel('time in h')
-		
+		title(sprintf('Std = %0.1f',Std(k)));
 		
 		hold on
 % 		subplot(a,b,3)
@@ -107,7 +110,7 @@ for n = 1:N
 end
 % 	subplot(a,b,2)
 legend(legstr);
-
+end
 
 %% plot
 
