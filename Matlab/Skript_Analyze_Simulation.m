@@ -77,6 +77,8 @@ a = 1;
 b = 3;
 t = 0:length(u{1});
 
+col = get(gca,'ColorOrder');
+
 grect = [20 20 1000 600];
 fh2= figure('Color','w','Position',grect);
 legstr = cell(N*M,1);
@@ -89,7 +91,8 @@ for n = 1:N
 % 		hold on
 		
 % 		subplot(a,b,2);
-		plot(t,abs(m1_t{n,m}))
+this_col = Intensity_rgb(col(n,:),1-m/6);
+		plot(t,abs(m1_t{n,m}),'Color',this_col)
 		ylabel('length first moment')
 		xlabel('time in h')
 		
