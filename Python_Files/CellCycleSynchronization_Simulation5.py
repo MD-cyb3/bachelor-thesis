@@ -201,6 +201,7 @@ for max_div_fac in div_fac_values:
         file_name_5 = 'Full_time_Distributions'
         file_name_6 = 'Full_time_transformed_Distribution'
         file_name_7 = 'Full_time_theta'
+        file_name_8 = 'Final_states'
         
         information_text = 'SimTime_%d, Kappa_%d, NumberOfCells%d' % (maximum-1, kappa, number)
         information_text += os.linesep
@@ -563,6 +564,11 @@ for max_div_fac in div_fac_values:
         '''
         save all values for parameter study
         '''
+
+        for index in range(number): 
+            save_values_loop.append_values(base_folder, folder_name,
+                    file_name_8 + '.csv', list(solution[index]), ['cell_' + str(index)])
+
         save_values.save_time_dependent_values(base_folder, folder_name, file_name_1, input_values,
                                                m1_values, moments)
                                             
