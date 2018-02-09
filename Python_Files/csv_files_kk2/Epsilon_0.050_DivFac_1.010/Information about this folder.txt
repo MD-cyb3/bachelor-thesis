@@ -1,4 +1,0 @@
-SimTime_499, Kappa_70, NumberOfCells3000
-Time_Dependent_Values with input u(t), moments m1(t), and absolut of moments |m1(t)|
-Distribution_Values with distribution n(x,0), n(x,t_end), p(x,0), p(x,t_end)
-Phase_Dependent_Values with phase theta(0), theta(t_end)
