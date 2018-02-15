@@ -61,7 +61,7 @@ with open( 'V_trajectory.p', 'rb' ) as f:
     V_trajectory = pickle.load(f)
 
 # define folders etc for saving variables
-std = 0.18
+std = 0.2
 
 base_folder = 'csv_files_KK_%.2f' % (std)
 
@@ -174,7 +174,7 @@ kappa = 70
 #  div_fac_values = [1.005, 1.01, 1.05] # [1.005, 1.1, 2., 10., 100.]
 #  div_fac_values = [1.1, 1.15, 1.2, 1.25] # [1.005, 1.1, 2., 10., 100.]
 div_fac_values = [1.005] # [1.005, 1.1, 2., 10., 100.]
-epsilon_values = [0.06, 0.07] # [0.01, 0.03, 0.1, 0.5, 1.0]
+epsilon_values = [0.08, 0.09] # [0.01, 0.03, 0.1, 0.5, 1.0]
 
 for max_div_fac in div_fac_values:
     print "Div_Fac = " + str(max_div_fac) + "\n"
